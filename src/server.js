@@ -92,6 +92,10 @@ app.use((req, res, next) => {
   res.locals.title = null;
   res.locals.currentUser = null;
   res.locals.access = { active: false, effectiveRank: 0, tier: null };
+  // Alapértelmezett CSRF token, hogy a hibaoldal akkor is renderelhető legyen,
+  // ha a hiba a CSRF-middleware lefutása előtt keletkezik (a valódi CSRF
+  // middleware később felülírja a tényleges tokennel).
+  res.locals.csrfToken = '';
   // Az integrációk állapota dinamikus (az admin beállításoktól függ).
   res.locals.stripeEnabled = stripeLib.isEnabled();
   res.locals.szamlazzEnabled = szamlazz.isEnabled();
