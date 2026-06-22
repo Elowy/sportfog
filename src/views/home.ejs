@@ -1,19 +1,22 @@
 <!-- Hero -->
-<section class="rounded-2xl bg-slate-900 text-white overflow-hidden mb-10">
-  <div class="px-6 py-12 sm:px-12 sm:py-16 max-w-3xl">
+<section class="relative rounded-2xl bg-slate-900 text-white overflow-hidden mb-10 min-h-[340px] flex">
+  <canvas id="pitch" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+  <div class="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/70 to-slate-900/20"></div>
+  <div class="relative px-6 py-12 sm:px-12 sm:py-16 max-w-3xl self-center">
     <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
       Profi foci tippek, <span class="text-brand">átlátható eredményekkel</span>
     </h1>
-    <p class="mt-4 text-slate-300 text-lg">
+    <p class="mt-4 text-slate-200 text-lg">
       Napi szinten frissülő sportfogadási tippek: 1X2, gólok, szögletek, lapok és még sok más.
       Válassz időtávot és előfizetési szintet – a többit ránk bízhatod.
     </p>
     <div class="mt-8 flex flex-wrap gap-3">
       <a href="/elofizetes" class="px-5 py-3 rounded-lg bg-brand hover:bg-brand-dark font-semibold">Előfizetek</a>
-      <a href="/tippek" class="px-5 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 font-semibold">Tippek megtekintése</a>
+      <a href="/tippek" class="px-5 py-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 font-semibold backdrop-blur">Tippek megtekintése</a>
     </div>
   </div>
 </section>
+<script src="/js/pitch.js" defer></script>
 
 <!-- Statisztika -->
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
