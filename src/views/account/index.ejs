@@ -22,6 +22,45 @@
   </div>
 </div>
 
+<% if (messengerEnabled) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 mb-8">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-xl">💬</span>
+      <h2 class="text-lg font-bold text-slate-900">Messenger értesítések</h2>
+    </div>
+
+    <% if (user.messengerPsid) { %>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border border-emerald-200">Összekapcsolva ✅</span>
+        <% if (!user.messengerOptIn) { %>
+          <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-sm border border-amber-200">Leiratkozva</span>
+        <% } %>
+      </div>
+      <p class="text-sm text-slate-600 mb-3">Az új tippekről értesítést kapsz a Messengeren. (Leiratkozás: írd a botnak, hogy <strong>STOP</strong>.)</p>
+      <form action="/fiok/messenger/levalaszt" method="post" onsubmit="return confirm('Biztosan leválasztod a Messengert?');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <button type="submit" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200">Leválasztás</button>
+      </form>
+    <% } else { %>
+      <p class="text-sm text-slate-600 mb-3">Kapcsold össze a fiókodat, hogy a Messengeren is megkapd az új tippeket:</p>
+      <ol class="text-sm text-slate-700 space-y-2 mb-4 list-decimal list-inside">
+        <li>Nyisd meg a Messenger-oldalunkat<% if (mMeLink) { %> (<a href="<%= mMeLink %>" target="_blank" rel="noopener" class="text-brand font-semibold hover:underline">m.me link</a>)<% } %>.</li>
+        <li>Küldd el neki ezt a kódot:</li>
+      </ol>
+      <div class="flex items-center gap-3 mb-3">
+        <code class="px-4 py-2 rounded-lg bg-slate-900 text-white font-mono text-lg tracking-wider"><%= user.messengerLinkCode || '—' %></code>
+        <% if (mMeLink) { %>
+          <a href="<%= mMeLink %>" target="_blank" rel="noopener" class="px-4 py-2 rounded-lg bg-[#0084FF] text-white text-sm font-semibold hover:opacity-90">Megnyitás Messengerben</a>
+        <% } %>
+      </div>
+      <form action="/fiok/messenger/ujkod" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <button type="submit" class="text-sm text-slate-500 hover:text-slate-700 hover:underline">Új kód generálása</button>
+      </form>
+    <% } %>
+  </div>
+<% } %>
+
 <h2 class="text-lg font-bold text-slate-900 mb-3">Vásárlási előzmények</h2>
 <% if (!grants || grants.length === 0) { %>
   <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">Még nincs vásárlásod.</div>

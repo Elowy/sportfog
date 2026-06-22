@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
+const messenger = require('../../lib/messenger');
+const { notifyNewTip } = require('../../services/notifications');
 const { MATCH_STATUSES, BET_TYPES, BET_TYPE_ORDER, TIER_ORDER, TIERS } = require('../../lib/domain');
 
 function parseKickoff(value) {
@@ -92,6 +94,7 @@ router.get('/:id', async (req, res, next) => {
       betTypeOrder: BET_TYPE_ORDER,
       tierOrder: TIER_ORDER,
       tiers: TIERS,
+      messengerEnabled: messenger.isEnabled(),
     });
   } catch (err) {
     next(err);
@@ -169,7 +172,7 @@ router.post('/:id/tippek', async (req, res, next) => {
       return res.redirect(`/admin/meccsek/${match.id}`);
     }
 
-    await prisma.tip.create({
+    const tip = await prisma.tip.create({
       data: {
         matchId: match.id,
         betType,
@@ -182,7 +185,16 @@ router.post('/:id/tippek', async (req, res, next) => {
         analysis: analysis ? analysis.trim() : null,
       },
     });
-    req.flash('success', 'Tipp hozzáadva.');
+
+    // Messenger értesítés (ha be van kapcsolva és az admin kérte).
+    if (messenger.isEnabled() && req.body.notify === 'on') {
+      req.flash('success', 'Tipp hozzáadva. A Messenger-értesítések kiküldése folyamatban.');
+      notifyNewTip(tip.id)
+        .then((r) => console.log(`Tipp értesítő kiküldve: ${r.sent} elküldve, ${r.skipped} kihagyva, ${r.failed} hiba.`))
+        .catch((err) => console.error('Tipp értesítő hiba:', err));
+    } else {
+      req.flash('success', 'Tipp hozzáadva.');
+    }
     res.redirect(`/admin/meccsek/${match.id}`);
   } catch (err) {
     next(err);

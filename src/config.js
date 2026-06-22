@@ -41,6 +41,20 @@ const config = {
     },
   },
 
+  messenger: {
+    pageAccessToken: process.env.MESSENGER_PAGE_ACCESS_TOKEN || '',
+    verifyToken: process.env.MESSENGER_VERIFY_TOKEN || '',
+    appSecret: process.env.MESSENGER_APP_SECRET || '',
+    pageUsername: process.env.MESSENGER_PAGE_USERNAME || '', // m.me/<username> linkhez
+    apiVersion: process.env.MESSENGER_API_VERSION || 'v21.0',
+    get enabled() {
+      return Boolean(this.pageAccessToken);
+    },
+    get mMeLink() {
+      return this.pageUsername ? `https://m.me/${this.pageUsername}` : '';
+    },
+  },
+
   get isProd() {
     return this.env === 'production';
   },

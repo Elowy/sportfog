@@ -42,5 +42,6 @@ router.use('/meccsek', require('./matches'));
 router.use('/tippek', require('./tips'));
 router.use('/csomagok', require('./plans'));
 router.use('/felhasznalok', require('./users'));
+router.use('/uzenetek', require('./messages'));
 
 module.exports = router;

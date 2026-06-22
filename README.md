@@ -123,6 +123,36 @@ Stripe-nál megadott számlázási adataival. A számlaszám megjelenik a felhas
 **Fiókom** oldalán és az admin irányítópulton. Ha a kulcs nincs megadva, a
 fizetés és a hozzáférés ettől még működik, csak számla nem készül.
 
+## Facebook Messenger értesítések (opcionális)
+
+A rendszer Messengeren is tud értesíteni: **új tipp publikálásakor** (az admin
+tipp-űrlapon bepipálható) és **kézi körüzenettel** (admin → Messenger üzenetek).
+Ha a `MESSENGER_PAGE_ACCESS_TOKEN` nincs megadva, a funkció kikapcsolt marad.
+
+**Beállítás:**
+1. Hozz létre egy **Facebook oldalt** és egy **Meta appot** (developers.facebook.com),
+   add hozzá a **Messenger** terméket.
+2. Generálj egy **Page Access Token**-t az oldaladhoz → `MESSENGER_PAGE_ACCESS_TOKEN`.
+3. A Meta app **Settings → Basic** alól az **App Secret** → `MESSENGER_APP_SECRET`.
+4. Állíts be egy tetszőleges **Verify Token**-t → `MESSENGER_VERIFY_TOKEN`.
+5. A Messenger **Webhooks** beállításnál:
+   - Callback URL: `https://A-TE-DOMENED/webhook/messenger`
+   - Verify Token: ugyanaz, mint fent
+   - Iratkozz fel a `messages`, `messaging_postbacks`, `messaging_referrals` mezőkre.
+6. Az oldalad felhasználóneve (m.me linkhez) → `MESSENGER_PAGE_USERNAME`.
+
+**Hogyan kapcsolja össze a felhasználó a fiókját:** a **Fiókom → Messenger
+értesítések** résznél kap egy kódot (pl. `SPORT-AB12CD`), megnyitja a Messenger-
+oldalt (m.me link), és elküldi neki a kódot. Ettől kezdve a jogosultságának
+megfelelő (szint szerinti) tippekről értesítést kap. Leiratkozás: a botnak
+küldött **STOP** üzenettel.
+
+> **Fontos korlátok (Meta szabályok):** a felhasználónak előbb írnia kell az
+> oldalnak (opt-in), és a **24 órás ablakon kívül** promóciós tartalom alapból
+> nem küldhető. A szerencsejáték/fogadási tartalomra a Meta platformszabályai
+> vonatkoznak – az engedélyezés a te felelősséged. Folyamatos (ablakon kívüli)
+> értesítéshez a Meta „recurring notifications" funkciója szükséges.
+
 ## PostgreSQL-re váltás (opcionális)
 
 1. A `prisma/schema.prisma` fájlban a `datasource db` blokk `provider` mezőjét

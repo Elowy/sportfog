@@ -30,6 +30,11 @@ model User {
   name             String?
   role             String        @default("USER") // USER | ADMIN
   stripeCustomerId String?
+  // Facebook Messenger összekapcsolás
+  messengerPsid     String?      @unique // Page-Scoped ID (csak miután a user írt az oldalnak)
+  messengerLinkCode String?      @unique // egyedi összekötő kód, amit a user elküld a botnak
+  messengerLinkedAt DateTime?
+  messengerOptIn    Boolean      @default(true) // kér-e tipp-értesítőt
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   grants           AccessGrant[]
