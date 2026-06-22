@@ -30,14 +30,39 @@ model User {
   name             String?
   role             String        @default("USER") // USER | ADMIN
   stripeCustomerId String?
-  // Facebook Messenger összekapcsolás
-  messengerPsid     String?      @unique // Page-Scoped ID (csak miután a user írt az oldalnak)
-  messengerLinkCode String?      @unique // egyedi összekötő kód, amit a user elküld a botnak
-  messengerLinkedAt DateTime?
-  messengerOptIn    Boolean      @default(true) // kér-e tipp-értesítőt
+  // Értesítési csatornák összekapcsolása
+  linkCode         String?       @unique // általános összekötő kód (Telegram/Messenger)
+  messengerPsid    String?       @unique // Facebook Page-Scoped ID
+  telegramChatId   String?       @unique // Telegram chat azonosító
+  // Értesítési preferenciák (regisztrációkor megadható)
+  notifyEmail      Boolean       @default(false)
+  notifyTelegram   Boolean       @default(false)
+  notifyMessenger  Boolean       @default(false)
+  notifyWebPush    Boolean       @default(false)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   grants           AccessGrant[]
+  pushSubs         PushSubscription[]
+}
+
+// Böngésző push feliratkozások (Web Push)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Admin felületen szerkeszthető beállítások (felülírják a .env értékeket)
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 // --- Foci meccsek ---------------------------------------------------------

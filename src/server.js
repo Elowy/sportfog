@@ -12,6 +12,7 @@ const prisma = require('./db');
 const domain = require('./lib/domain');
 const stripeLib = require('./lib/stripe');
 const szamlazz = require('./lib/szamlazz');
+const settings = require('./services/settings');
 const { flash, csrf } = require('./middleware/web');
 const { loadUser } = require('./middleware/auth');
 
@@ -55,8 +56,6 @@ app.locals.formatHuf = domain.formatHuf;
 app.locals.formatDateTime = domain.formatDateTime;
 app.locals.formatDate = domain.formatDate;
 app.locals.baseUrl = config.baseUrl;
-app.locals.stripeEnabled = stripeLib.isEnabled();
-app.locals.szamlazzEnabled = szamlazz.isEnabled();
 
 // Session – a meglévő (Prisma/SQLite) adatbázisban tároljuk, így nincs
 // natív fordítást igénylő függőség (jól működik cPanel/megosztott tárhelyen).
@@ -93,6 +92,9 @@ app.use((req, res, next) => {
   res.locals.title = null;
   res.locals.currentUser = null;
   res.locals.access = { active: false, effectiveRank: 0, tier: null };
+  // Az integrációk állapota dinamikus (az admin beállításoktól függ).
+  res.locals.stripeEnabled = stripeLib.isEnabled();
+  res.locals.szamlazzEnabled = szamlazz.isEnabled();
   next();
 });
 
@@ -130,13 +132,13 @@ app.use((err, req, res, next) => {
 // Passenger (cPanel) a PORT környezeti változóban adhat meg portot vagy
 // Unix socket elérési utat is – ezért a nyers értéket adjuk át a listen-nek.
 const listenTarget = process.env.PORT || config.port;
-const server = app.listen(listenTarget, () => {
+
+// Az admin beállításokat indulás előtt betöltjük a DB-ből (a .env fölé).
+const server = app.listen(listenTarget, async () => {
+  await settings.reload();
   console.log(`Sportfog fut: ${config.baseUrl} (${listenTarget})`);
   if (!stripeLib.isEnabled()) {
-    console.warn('Figyelem: a Stripe nincs beállítva (STRIPE_SECRET_KEY hiányzik) – a fizetés tesztmódban nem működik.');
-  }
-  if (!szamlazz.isEnabled()) {
-    console.warn('Figyelem: a Számlázz.hu nincs beállítva (SZAMLAZZ_AGENT_KEY hiányzik) – számla nem készül.');
+    console.warn('Figyelem: a Stripe nincs beállítva – a fizetés nem működik.');
   }
 });
 

@@ -1,10 +1,7 @@
-// Környezeti változók betöltése és központi konfiguráció.
+// Alap (bootstrap) konfiguráció a környezeti változókból.
+// Az integrációs kulcsok (Stripe, Számlázz, Messenger, Telegram, e-mail, Web Push)
+// az admin felületen szerkeszthetők – azokat a services/settings.js kezeli.
 require('dotenv').config();
-
-function bool(value, fallback = false) {
-  if (value === undefined || value === null || value === '') return fallback;
-  return ['1', 'true', 'yes', 'igen', 'on'].includes(String(value).toLowerCase());
-}
 
 const config = {
   env: process.env.NODE_ENV || 'development',
@@ -16,43 +13,6 @@ const config = {
     email: process.env.ADMIN_EMAIL || 'admin@sportfog.hu',
     password: process.env.ADMIN_PASSWORD || 'admin1234',
     name: process.env.ADMIN_NAME || 'Adminisztrátor',
-  },
-
-  stripe: {
-    secretKey: process.env.STRIPE_SECRET_KEY || '',
-    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-    currency: (process.env.STRIPE_CURRENCY || 'huf').toLowerCase(),
-    get enabled() {
-      return Boolean(this.secretKey);
-    },
-  },
-
-  szamlazz: {
-    agentKey: process.env.SZAMLAZZ_AGENT_KEY || '',
-    eszamla: bool(process.env.SZAMLAZZ_ESZAMLA, false),
-    sendEmail: bool(process.env.SZAMLAZZ_SEND_EMAIL, true),
-    prefix: process.env.SZAMLAZZ_PREFIX || '',
-    paymentMethod: process.env.SZAMLAZZ_PAYMENT_METHOD || 'bankkártya',
-    // ÁFA kulcs: szám (pl. "27", "5", "0") vagy szöveges kulcs (pl. "AM" – alanyi adómentes, "TAM")
-    vatRate: process.env.SZAMLAZZ_VAT_RATE || '27',
-    get enabled() {
-      return Boolean(this.agentKey);
-    },
-  },
-
-  messenger: {
-    pageAccessToken: process.env.MESSENGER_PAGE_ACCESS_TOKEN || '',
-    verifyToken: process.env.MESSENGER_VERIFY_TOKEN || '',
-    appSecret: process.env.MESSENGER_APP_SECRET || '',
-    pageUsername: process.env.MESSENGER_PAGE_USERNAME || '', // m.me/<username> linkhez
-    apiVersion: process.env.MESSENGER_API_VERSION || 'v21.0',
-    get enabled() {
-      return Boolean(this.pageAccessToken);
-    },
-    get mMeLink() {
-      return this.pageUsername ? `https://m.me/${this.pageUsername}` : '';
-    },
   },
 
   get isProd() {

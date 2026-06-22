@@ -1,28 +1,31 @@
-// Admin: kézi Messenger körüzenet küldése.
+// Admin: kézi körüzenet több csatornán (e-mail / Telegram / Messenger / web push).
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
-const messenger = require('../../lib/messenger');
-const { broadcast } = require('../../services/notifications');
+const notifications = require('../../services/notifications');
 
-async function counts() {
-  const [linked, optedIn] = await Promise.all([
-    prisma.user.count({ where: { messengerPsid: { not: null } } }),
-    prisma.user.count({ where: { messengerPsid: { not: null }, messengerOptIn: true } }),
+async function stats() {
+  const [emailOn, telegramOn, messengerOn, webpushOn] = await Promise.all([
+    prisma.user.count({ where: { notifyEmail: true } }),
+    prisma.user.count({ where: { notifyTelegram: true, telegramChatId: { not: null } } }),
+    prisma.user.count({ where: { notifyMessenger: true, messengerPsid: { not: null } } }),
+    prisma.user.count({ where: { notifyWebPush: true } }),
   ]);
-  return { linked, optedIn };
+  return { emailOn, telegramOn, messengerOn, webpushOn };
+}
+
+function viewData(extra) {
+  return Object.assign({
+    title: 'Admin – Üzenetek',
+    layout: 'admin/layout',
+    channelStatus: notifications.channelStatus(),
+    anyChannel: notifications.anyChannelEnabled(),
+  }, extra);
 }
 
 router.get('/', async (req, res, next) => {
   try {
-    res.render('admin/messages/index', {
-      title: 'Admin – Messenger üzenetek',
-      layout: 'admin/layout',
-      messengerEnabled: messenger.isEnabled(),
-      stats: await counts(),
-      result: null,
-      sentText: '',
-    });
+    res.render('admin/messages/index', viewData({ stats: await stats(), result: null, sent: { title: '', text: '' } }));
   } catch (err) {
     next(err);
   }
@@ -30,29 +33,22 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const audience = ['linked', 'active', 'BASIC', 'PREMIUM', 'VIP'].includes(req.body.audience)
-      ? req.body.audience
-      : 'linked';
+    const audience = ['all', 'active', 'BASIC', 'PREMIUM', 'VIP'].includes(req.body.audience) ? req.body.audience : 'all';
+    const title = (req.body.title || '').trim();
     const text = (req.body.text || '').trim();
+    const channels = ['email', 'telegram', 'messenger', 'webpush'].filter((c) => req.body['ch_' + c] === 'on');
 
     let result = null;
-    if (!messenger.isEnabled()) {
-      req.flash('error', 'A Messenger nincs beállítva.');
+    if (!notifications.anyChannelEnabled()) {
+      req.flash('error', 'Nincs beállított értesítési csatorna.');
     } else if (!text) {
       req.flash('error', 'Az üzenet nem lehet üres.');
     } else {
-      result = await broadcast({ audience, text });
-      req.flash('success', `Körüzenet kész: ${result.sent} elküldve, ${result.failed} hiba (${result.total} címzett).`);
+      result = await notifications.broadcast({ audience, channels, title, text });
+      req.flash('success', `Körüzenet kész: ${result.users} felhasználó, ${result.sent} üzenet elküldve.`);
     }
 
-    res.render('admin/messages/index', {
-      title: 'Admin – Messenger üzenetek',
-      layout: 'admin/layout',
-      messengerEnabled: messenger.isEnabled(),
-      stats: await counts(),
-      result,
-      sentText: text,
-    });
+    res.render('admin/messages/index', viewData({ stats: await stats(), result, sent: { title, text } }));
   } catch (err) {
     next(err);
   }

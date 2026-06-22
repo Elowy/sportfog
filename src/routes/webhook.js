@@ -4,8 +4,9 @@ const express = require('express');
 const router = express.Router();
 const stripeLib = require('../lib/stripe');
 const messenger = require('../lib/messenger');
+const telegram = require('../lib/telegram');
 const { fulfillFromSession } = require('../services/fulfillment');
-const { handleMessengerEvent } = require('../services/notifications');
+const { handleMessengerEvent, handleTelegramUpdate } = require('../services/notifications');
 
 router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
   if (!stripeLib.isEnabled()) {
@@ -81,6 +82,20 @@ router.post('/messenger', express.raw({ type: '*/*' }), async (req, res) => {
     }
   } catch (err) {
     console.error('Messenger esemény feldolgozási hiba:', err);
+  }
+});
+
+// --- Telegram webhook ----------------------------------------------------
+router.post('/telegram', express.json(), async (req, res) => {
+  const secret = telegram.webhookSecret();
+  if (secret && req.get('x-telegram-bot-api-secret-token') !== secret) {
+    return res.sendStatus(403);
+  }
+  res.sendStatus(200);
+  try {
+    await handleTelegramUpdate(req.body);
+  } catch (err) {
+    console.error('Telegram update feldolgozási hiba:', err);
   }
 });
 

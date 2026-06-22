@@ -1,0 +1,61 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-2">Beállítások</h1>
+<p class="text-slate-600 mb-6 text-sm">
+  Az itt megadott értékek <strong>felülírják a .env</strong> beállításokat (az adatbázisban tárolódnak).
+  A jelszó/titok mezőket biztonsági okból nem írjuk ki – ha üresen hagyod, a jelenlegi érték marad.
+</p>
+
+<form action="/admin/beallitasok" method="post" class="space-y-8 max-w-2xl">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <% Object.keys(groups).forEach(function(groupName){ %>
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h2 class="text-lg font-bold text-slate-800 mb-4"><%= groupName %></h2>
+      <input type="hidden" name="__group_<%= groupName %>" value="1" />
+      <div class="space-y-4">
+        <% groups[groupName].forEach(function(f){ %>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <label class="text-sm font-medium text-slate-700"><%= f.label %></label>
+              <% if (f.fromDb) { %><span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">mentve</span>
+              <% } else if (f.fromEnv) { %><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">.env-ből</span>
+              <% } else if (f.isSet) { %><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">alapérték</span>
+              <% } %>
+            </div>
+
+            <% if (f.type === 'bool') { %>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="<%= f.key %>" class="h-4 w-4" <%= f.checked ? 'checked' : '' %> /> Bekapcsolva
+              </label>
+            <% } else if (f.type === 'password') { %>
+              <input type="password" name="<%= f.key %>" autocomplete="new-password"
+                placeholder="<%= f.isSet ? '•••••••• (változatlan, ha üres)' : 'nincs beállítva' %>"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
+            <% } else { %>
+              <input type="text" name="<%= f.key %>" value="<%= f.effective %>"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
+            <% } %>
+
+            <div class="text-[11px] text-slate-400 mt-1 font-mono"><%= f.key %></div>
+          </div>
+        <% }) %>
+
+        <% if (groupName === 'Web Push') { %>
+          <div class="pt-2 border-t border-slate-100">
+            <p class="text-xs text-slate-500 mb-2">Nincs VAPID kulcsod? Generálj egyet egy kattintással:</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  <% }) %>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="px-5 py-2.5 rounded-lg bg-brand text-white font-semibold hover:bg-brand-dark">Beállítások mentése</button>
+  </div>
+</form>
+
+<!-- VAPID generálás külön űrlap -->
+<form action="/admin/beallitasok/vapid" method="post" class="max-w-2xl mt-4"
+  onsubmit="return confirm('Új VAPID kulcspár generálása felülírja a jelenlegit. A meglévő böngésző-feliratkozások érvénytelenné válhatnak. Folytatod?');">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button type="submit" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200">VAPID kulcspár generálása (Web Push)</button>
+</form>

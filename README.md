@@ -123,35 +123,43 @@ Stripe-nál megadott számlázási adataival. A számlaszám megjelenik a felhas
 **Fiókom** oldalán és az admin irányítópulton. Ha a kulcs nincs megadva, a
 fizetés és a hozzáférés ettől még működik, csak számla nem készül.
 
-## Facebook Messenger értesítések (opcionális)
+## Beállítások az admin felületen
 
-A rendszer Messengeren is tud értesíteni: **új tipp publikálásakor** (az admin
-tipp-űrlapon bepipálható) és **kézi körüzenettel** (admin → Messenger üzenetek).
-Ha a `MESSENGER_PAGE_ACCESS_TOKEN` nincs megadva, a funkció kikapcsolt marad.
+Az integrációs kulcsok (Stripe, Számlázz.hu, Messenger, Telegram, e-mail, Web Push)
+a **`.env`** mellett az **Admin → Beállítások** oldalon is szerkeszthetők. Az ott
+megadott érték **felülírja a `.env`-et** (az adatbázisban tárolódik). Így nem kell
+szerverhez nyúlni egy kulcs cseréjéhez. A bootstrap-jellegű és biztonsági értékek
+(`SESSION_SECRET`, `ADMIN_*`, `DATABASE_URL`, `BASE_URL`, `PORT`) maradnak a `.env`-ben.
 
-**Beállítás:**
-1. Hozz létre egy **Facebook oldalt** és egy **Meta appot** (developers.facebook.com),
-   add hozzá a **Messenger** terméket.
-2. Generálj egy **Page Access Token**-t az oldaladhoz → `MESSENGER_PAGE_ACCESS_TOKEN`.
-3. A Meta app **Settings → Basic** alól az **App Secret** → `MESSENGER_APP_SECRET`.
-4. Állíts be egy tetszőleges **Verify Token**-t → `MESSENGER_VERIFY_TOKEN`.
-5. A Messenger **Webhooks** beállításnál:
-   - Callback URL: `https://A-TE-DOMENED/webhook/messenger`
-   - Verify Token: ugyanaz, mint fent
-   - Iratkozz fel a `messages`, `messaging_postbacks`, `messaging_referrals` mezőkre.
-6. Az oldalad felhasználóneve (m.me linkhez) → `MESSENGER_PAGE_USERNAME`.
+## Értesítések (e-mail, Telegram, Messenger, Web Push)
 
-**Hogyan kapcsolja össze a felhasználó a fiókját:** a **Fiókom → Messenger
-értesítések** résznél kap egy kódot (pl. `SPORT-AB12CD`), megnyitja a Messenger-
-oldalt (m.me link), és elküldi neki a kódot. Ettől kezdve a jogosultságának
-megfelelő (szint szerinti) tippekről értesítést kap. Leiratkozás: a botnak
-küldött **STOP** üzenettel.
+A felhasználók **az új tippekről** kapnak értesítést a választott csatornákon, a
+**jogosultságuknak (szintjüknek) megfelelően**. A csatorna a regisztrációkor
+megadható, és a **Fiókom → Értesítések** oldalon bármikor módosítható. Kiváltó:
+**új tipp publikálásakor** (az admin tipp-űrlapján bepipálható) és **admin kézi
+körüzenettel** (Admin → Üzenetek). Minden csatorna **kikapcsolt marad**, amíg a
+kulcsait meg nem adod (a Beállítások oldalon vagy a `.env`-ben).
 
-> **Fontos korlátok (Meta szabályok):** a felhasználónak előbb írnia kell az
-> oldalnak (opt-in), és a **24 órás ablakon kívül** promóciós tartalom alapból
-> nem küldhető. A szerencsejáték/fogadási tartalomra a Meta platformszabályai
-> vonatkoznak – az engedélyezés a te felelősséged. Folyamatos (ablakon kívüli)
-> értesítéshez a Meta „recurring notifications" funkciója szükséges.
+**E-mail (SMTP):** add meg az `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
+`SMTP_PASS`, `EMAIL_FROM` értékeket. Az e-mailek tartalmaznak leiratkozó linket.
+
+**Telegram:** a [@BotFather](https://t.me/BotFather)-rel hozz létre egy botot →
+`TELEGRAM_BOT_TOKEN`, a bot neve → `TELEGRAM_BOT_USERNAME`. Állíts be egy
+webhookot: `setWebhook` a `https://A-TE-DOMENED/webhook/telegram` URL-re (érdemes
+`secret_token`-nel, amit a `TELEGRAM_WEBHOOK_SECRET`-be is beírsz). A felhasználó a
+Fiókomban a **Megnyitás Telegramban** gombbal egy kattintással összekapcsolja a fiókját.
+
+**Facebook Messenger:** Facebook oldal + Meta app + Messenger termék kell.
+`MESSENGER_PAGE_ACCESS_TOKEN`, `MESSENGER_APP_SECRET`, `MESSENGER_VERIFY_TOKEN`,
+`MESSENGER_PAGE_USERNAME`. Webhook: `https://A-TE-DOMENED/webhook/messenger`
+(ugyanaz a Verify Token; `messages`, `messaging_postbacks`, `messaging_referrals`
+mezők). A felhasználó a Fiókomban kapott kódot küldi el a botnak. **Korlát:** a Meta
+24 órás szabálya és a szerencsejáték-tartalom korlátozásai vonatkoznak rá.
+
+**Web Push (böngésző értesítés):** generálj VAPID kulcspárt az **Admin → Beállítások**
+oldalon egy gombbal (vagy `npx web-push generate-vapid-keys`), állítsd be a
+`VAPID_SUBJECT`-et. A felhasználó a Fiókomban a **Bekapcsolás ezen az eszközön**
+gombbal engedélyezi (böngészőnként/eszközönként). HTTPS szükséges.
 
 ## PostgreSQL-re váltás (opcionális)
 

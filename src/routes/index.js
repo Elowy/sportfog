@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../db');
+const { unsubToken } = require('../services/notifications');
 
 router.get('/', async (req, res, next) => {
   try {
@@ -25,6 +26,20 @@ router.get('/', async (req, res, next) => {
       upcoming,
       stats: { won, lost, total, winRate },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// E-mail leiratkozás (az e-mailben lévő link tokenjével, bejelentkezés nélkül).
+router.get('/leiratkozas', async (req, res, next) => {
+  try {
+    const { u, t } = req.query;
+    if (!u || !t || t !== unsubToken(u)) {
+      return res.status(400).render('info', { title: 'Érvénytelen link', message: 'A leiratkozó link érvénytelen vagy lejárt.', icon: '⚠️' });
+    }
+    await prisma.user.update({ where: { id: u }, data: { notifyEmail: false } }).catch(() => {});
+    res.render('info', { title: 'Leiratkoztál', message: 'Többé nem küldünk e-mail értesítőt az új tippekről. Bármikor visszakapcsolhatod a Fiókom oldalon.', icon: '✅' });
   } catch (err) {
     next(err);
   }

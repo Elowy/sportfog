@@ -1,50 +1,65 @@
-<h1 class="text-2xl font-bold text-slate-900 mb-2">Messenger üzenetek</h1>
-<p class="text-slate-600 mb-6 text-sm">Kézi körüzenet küldése a Messengerrel összekapcsolt felhasználóknak.</p>
+<h1 class="text-2xl font-bold text-slate-900 mb-2">Üzenetek (körüzenet)</h1>
+<p class="text-slate-600 mb-6 text-sm">Kézi értesítés küldése a beállított csatornákon a felhasználóknak.</p>
 
-<% if (!messengerEnabled) { %>
+<% if (!anyChannel) { %>
   <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3 text-sm mb-6">
-    A Messenger nincs beállítva (hiányzó <code>MESSENGER_PAGE_ACCESS_TOKEN</code>). A küldés nem elérhető.
+    Nincs beállított értesítési csatorna. Állítsd be őket az <a href="/admin/beallitasok" class="font-semibold underline">Admin → Beállítások</a> oldalon.
   </div>
 <% } %>
 
-<div class="grid grid-cols-2 gap-4 mb-6 max-w-md">
-  <div class="bg-white rounded-xl border border-slate-200 p-4">
-    <div class="text-2xl font-extrabold text-slate-900"><%= stats.linked %></div>
-    <div class="text-sm text-slate-500">Összekapcsolt fiók</div>
-  </div>
-  <div class="bg-white rounded-xl border border-slate-200 p-4">
-    <div class="text-2xl font-extrabold text-emerald-600"><%= stats.optedIn %></div>
-    <div class="text-sm text-slate-500">Értesítést kér</div>
-  </div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.emailOn %></div><div class="text-xs text-slate-500">E-mail feliratkozó</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.telegramOn %></div><div class="text-xs text-slate-500">Telegram</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.messengerOn %></div><div class="text-xs text-slate-500">Messenger</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.webpushOn %></div><div class="text-xs text-slate-500">Böngésző push</div></div>
 </div>
 
 <% if (result) { %>
   <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-4 py-3 text-sm mb-6">
-    Elküldve: <strong><%= result.sent %></strong> · Hiba: <strong><%= result.failed %></strong> · Címzettek: <strong><%= result.total %></strong>
+    Elért felhasználó: <strong><%= result.users %></strong> · Elküldött üzenet: <strong><%= result.sent %></strong>
   </div>
 <% } %>
 
 <form action="/admin/uzenetek" method="post" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4 max-w-2xl">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
   <div>
     <label class="block text-sm font-medium text-slate-700 mb-1">Címzettek</label>
     <select name="audience" class="w-full sm:w-72 rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand">
-      <option value="linked">Összes összekapcsolt felhasználó</option>
+      <option value="all">Mindenki (aki kér értesítést)</option>
       <option value="active">Csak aktív előfizetők</option>
       <option value="BASIC">Alap szinttől felfelé</option>
       <option value="PREMIUM">Prémium szinttől felfelé</option>
       <option value="VIP">Csak VIP</option>
     </select>
   </div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Csatornák</label>
+    <p class="text-xs text-slate-500 mb-2">Ha egyet sem jelölsz, mindegyik beállított csatornára megy (a user preferenciája szerint).</p>
+    <div class="flex flex-wrap gap-4">
+      <label class="flex items-center gap-2 text-sm <%= channelStatus.email ? 'text-slate-700' : 'text-slate-400' %>"><input type="checkbox" name="ch_email" class="h-4 w-4" <%= channelStatus.email ? '' : 'disabled' %> /> E-mail</label>
+      <label class="flex items-center gap-2 text-sm <%= channelStatus.telegram ? 'text-slate-700' : 'text-slate-400' %>"><input type="checkbox" name="ch_telegram" class="h-4 w-4" <%= channelStatus.telegram ? '' : 'disabled' %> /> Telegram</label>
+      <label class="flex items-center gap-2 text-sm <%= channelStatus.messenger ? 'text-slate-700' : 'text-slate-400' %>"><input type="checkbox" name="ch_messenger" class="h-4 w-4" <%= channelStatus.messenger ? '' : 'disabled' %> /> Messenger</label>
+      <label class="flex items-center gap-2 text-sm <%= channelStatus.webpush ? 'text-slate-700' : 'text-slate-400' %>"><input type="checkbox" name="ch_webpush" class="h-4 w-4" <%= channelStatus.webpush ? '' : 'disabled' %> /> Böngésző</label>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Cím (e-mail tárgy / push cím)</label>
+    <input type="text" name="title" value="<%= sent.title || '' %>" placeholder="Sportfog értesítés"
+      class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+  </div>
+
   <div>
     <label class="block text-sm font-medium text-slate-700 mb-1">Üzenet</label>
-    <textarea name="text" rows="5" maxlength="1900" required
+    <textarea name="text" rows="5" required
       class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
-      placeholder="Írd ide az üzenetet..."><%= sentText || '' %></textarea>
-    <p class="text-xs text-slate-500 mt-1">Max. 1900 karakter. Csak azokat éri el, akik nemrég írtak a botnak (Messenger 24 órás szabály).</p>
+      placeholder="Írd ide az üzenetet..."><%= sent.text || '' %></textarea>
   </div>
-  <button type="submit" <%= messengerEnabled ? '' : 'disabled' %>
-    class="px-5 py-2.5 rounded-lg text-white font-semibold <%= messengerEnabled ? 'bg-brand hover:bg-brand-dark' : 'bg-slate-300 cursor-not-allowed' %>">
+
+  <button type="submit" <%= anyChannel ? '' : 'disabled' %>
+    class="px-5 py-2.5 rounded-lg text-white font-semibold <%= anyChannel ? 'bg-brand hover:bg-brand-dark' : 'bg-slate-300 cursor-not-allowed' %>">
     Körüzenet küldése
   </button>
 </form>
