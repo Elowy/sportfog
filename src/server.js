@@ -1,14 +1,14 @@
 // Sportfog – alkalmazás belépési pont.
 const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const expressLayouts = require('express-ejs-layouts');
 
 const config = require('./config');
+const prisma = require('./db');
 const domain = require('./lib/domain');
 const stripeLib = require('./lib/stripe');
 const szamlazz = require('./lib/szamlazz');
@@ -16,10 +16,6 @@ const { flash, csrf } = require('./middleware/web');
 const { loadUser } = require('./middleware/auth');
 
 const app = express();
-
-// Adatkönyvtár (session adatbázis számára)
-const dataDir = path.join(__dirname, '..', 'data');
-fs.mkdirSync(dataDir, { recursive: true });
 
 // Proxy mögött (pl. Nginx) a secure cookie-khoz
 if (config.isProd) app.set('trust proxy', 1);
@@ -62,10 +58,14 @@ app.locals.baseUrl = config.baseUrl;
 app.locals.stripeEnabled = stripeLib.isEnabled();
 app.locals.szamlazzEnabled = szamlazz.isEnabled();
 
-// Session
+// Session – a meglévő (Prisma/SQLite) adatbázisban tároljuk, így nincs
+// natív fordítást igénylő függőség (jól működik cPanel/megosztott tárhelyen).
 app.use(
   session({
-    store: new SQLiteStore({ db: 'sessions.sqlite3', dir: dataDir }),
+    store: new PrismaSessionStore(prisma, {
+      checkPeriod: 1000 * 60 * 60, // lejárt session-ök takarítása óránként
+      dbRecordIdIsSessionId: true,
+    }),
     secret: config.sessionSecret,
     resave: false,
     saveUninitialized: false,
@@ -127,8 +127,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(config.port, () => {
-  console.log(`Sportfog fut: ${config.baseUrl} (port ${config.port})`);
+// Passenger (cPanel) a PORT környezeti változóban adhat meg portot vagy
+// Unix socket elérési utat is – ezért a nyers értéket adjuk át a listen-nek.
+const listenTarget = process.env.PORT || config.port;
+const server = app.listen(listenTarget, () => {
+  console.log(`Sportfog fut: ${config.baseUrl} (${listenTarget})`);
   if (!stripeLib.isEnabled()) {
     console.warn('Figyelem: a Stripe nincs beállítva (STRIPE_SECRET_KEY hiányzik) – a fizetés tesztmódban nem működik.');
   }

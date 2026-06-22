@@ -53,6 +53,45 @@ Az oldal alapértelmezetten a http://localhost:3000 címen érhető el.
 Bejelentkezés adminként a `.env`-ben megadott `ADMIN_EMAIL` / `ADMIN_PASSWORD` értékekkel.
 Az admin felület: **/admin**.
 
+## Telepítés cPanel / megosztott tárhelyen
+
+Megosztott tárhelyen a `node` és `npm` nincs az alapértelmezett PATH-ban – egy
+**alkalmazás-specifikus Node.js virtuális környezetbe** kerülnek, amelyet a cPanel
+**„Setup Node.js App"** eszközével hozol létre. Az alkalmazás kifejezetten ehhez
+készült: SQLite-ot használ (nincs külön adatbázis-szerver), és **nincs natív
+fordítást igénylő függősége**.
+
+1. **cPanel → Setup Node.js App → Create Application**
+   - **Node.js version:** 18 vagy újabb (ha van, 20)
+   - **Application mode:** Production
+   - **Application root:** a projekt mappája (pl. `fogadas.luiz-tech.hu`)
+   - **Application URL:** a domain
+   - **Application startup file:** `app.js`
+   - Hozd létre az alkalmazást.
+
+2. **SSH-ban aktiváld a Node környezetet.** A „Setup Node.js App" oldal mutat egy
+   parancsot (`Enter to the virtual environment`), valami ilyesmit:
+   ```bash
+   source /home/luiztecs/nodevenv/fogadas.luiz-tech.hu/18/bin/activate && cd /home/luiztecs/fogadas.luiz-tech.hu
+   ```
+   Ezután a `node` és `npm` elérhető.
+
+3. **Függőségek + adatbázis:**
+   ```bash
+   npm install
+   cp .env.example .env     # töltsd ki (SESSION_SECRET, ADMIN_*, Stripe, Számlázz.hu)
+   npm run setup            # séma + seed (admin, csomagok, demó adatok)
+   ```
+   A `.env` helyett (vagy mellett) a környezeti változókat a „Setup Node.js App"
+   felületen is megadhatod (Environment variables), majd **Restart**.
+
+4. **Indítás/újraindítás:** a cPanel (Passenger) automatikusan futtatja az
+   `app.js`-t. Módosítás után nyomj **Restart**-ot a felületen (vagy `touch tmp/restart.txt`).
+   A `PORT`-ot a Passenger állítja be – az app ehhez automatikusan igazodik.
+
+> **Tipp:** a `.env`-ben a `BASE_URL`-t és `NODE_ENV=production`-t állítsd be a
+> valós domainre, hogy a Stripe visszairányítás és a biztonságos süti működjön.
+
 ## Stripe beállítása
 
 1. Hozz létre egy Stripe fiókot, és a **Developers → API keys** alól másold be a
