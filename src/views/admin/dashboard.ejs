@@ -1,0 +1,62 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-6">Irányítópult</h1>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-3xl font-extrabold text-slate-900"><%= stats.userCount %></div>
+    <div class="text-sm text-slate-500">Felhasználó</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-3xl font-extrabold text-slate-900"><%= stats.upcomingCount %></div>
+    <div class="text-sm text-slate-500">Közelgő meccs</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-3xl font-extrabold text-slate-900"><%= stats.tipCount %></div>
+    <div class="text-sm text-slate-500">Tipp összesen (<%= stats.pendingTips %> függőben)</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-3xl font-extrabold text-emerald-600"><%= stats.paidGrants %></div>
+    <div class="text-sm text-slate-500">Fizetett előfizetés</div>
+  </div>
+</div>
+
+<% if (stats.invoiceErrors > 0) { %>
+  <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm mb-6">
+    <strong><%= stats.invoiceErrors %></strong> fizetett előfizetésnél hiba történt a számlázáskor. Ellenőrizd a Számlázz.hu beállításokat.
+  </div>
+<% } %>
+
+<div class="flex flex-wrap gap-3 mb-8">
+  <a href="/admin/meccsek/uj" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">+ Új meccs</a>
+  <a href="/admin/meccsek" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-semibold hover:border-brand">Meccsek kezelése</a>
+  <a href="/admin/csomagok" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-semibold hover:border-brand">Árak beállítása</a>
+</div>
+
+<h2 class="text-lg font-bold text-slate-900 mb-3">Legutóbbi előfizetések</h2>
+<% if (!recentGrants || recentGrants.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">Még nincs előfizetés.</div>
+<% } else { %>
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-left">
+        <tr>
+          <th class="px-4 py-3 font-medium">Dátum</th>
+          <th class="px-4 py-3 font-medium">Felhasználó</th>
+          <th class="px-4 py-3 font-medium">Szint</th>
+          <th class="px-4 py-3 font-medium">Összeg</th>
+          <th class="px-4 py-3 font-medium">Számla</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <% recentGrants.forEach(function(g){ %>
+          <tr>
+            <td class="px-4 py-3 text-slate-600"><%= formatDate(g.createdAt) %></td>
+            <td class="px-4 py-3 text-slate-800"><%= g.user.email %></td>
+            <td class="px-4 py-3"><%= domain.tierLabel(g.tier) %></td>
+            <td class="px-4 py-3 text-slate-600"><%= g.amountHuf != null ? formatHuf(g.amountHuf) : '–' %></td>
+            <td class="px-4 py-3 text-slate-600"><%= g.invoiceNumber || (g.invoiceError ? 'hiba' : '–') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

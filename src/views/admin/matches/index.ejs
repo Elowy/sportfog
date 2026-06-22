@@ -1,0 +1,45 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-slate-900">Meccsek &amp; tippek</h1>
+  <a href="/admin/meccsek/uj" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">+ Új meccs</a>
+</div>
+
+<% if (!matches || matches.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+    Még nincs meccs. Kezdd egy <a href="/admin/meccsek/uj" class="text-brand font-semibold">új meccs</a> létrehozásával.
+  </div>
+<% } else { %>
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-500 text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Időpont</th>
+            <th class="px-4 py-3 font-medium">Liga</th>
+            <th class="px-4 py-3 font-medium">Mérkőzés</th>
+            <th class="px-4 py-3 font-medium">Állapot</th>
+            <th class="px-4 py-3 font-medium">Tippek</th>
+            <th class="px-4 py-3 font-medium text-right">Műveletek</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% matches.forEach(function(m){
+               var st = domain.MATCH_STATUSES[m.status] || { label: m.status };
+               var stBadge = m.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700'
+                           : m.status === 'FINISHED' ? 'bg-emerald-100 text-emerald-700'
+                           : 'bg-slate-100 text-slate-600'; %>
+            <tr>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap"><%= formatDateTime(m.kickoffAt) %></td>
+              <td class="px-4 py-3 text-slate-600"><%= m.league || '–' %></td>
+              <td class="px-4 py-3 font-medium text-slate-800"><%= m.homeTeam %> – <%= m.awayTeam %></td>
+              <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold <%= stBadge %>"><%= st.label %></span></td>
+              <td class="px-4 py-3 text-slate-600"><%= m._count.tips %></td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <a href="/admin/meccsek/<%= m.id %>" class="text-brand font-semibold hover:underline">Kezelés</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>

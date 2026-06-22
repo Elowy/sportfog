@@ -1,0 +1,72 @@
+<div class="flex items-center gap-2 mb-4">
+  <a href="/admin/meccsek/<%= tip.matchId %>" class="text-slate-400 hover:text-slate-600">← Vissza a meccshez</a>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 mb-1">Tipp szerkesztése</h1>
+<p class="text-slate-500 mb-6"><%= tip.match.homeTeam %> – <%= tip.match.awayTeam %></p>
+
+<form action="/admin/tippek/<%= tip.id %>" method="post" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4 max-w-3xl">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Fogadás típusa</label>
+      <select name="betType" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand">
+        <% betTypeOrder.forEach(function(code){ %>
+          <option value="<%= code %>" <%= tip.betType === code ? 'selected' : '' %>><%= betTypes[code].label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Tipp (kimenetel)</label>
+      <input type="text" name="selection" value="<%= tip.selection %>"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-4 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Vonal (line)</label>
+      <input type="number" step="0.25" name="line" value="<%= tip.line !== null && tip.line !== undefined ? tip.line : '' %>"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Odds</label>
+      <input type="number" step="0.01" name="odds" value="<%= tip.odds !== null && tip.odds !== undefined ? tip.odds : '' %>"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Bizalom (1–5)</label>
+      <input type="number" min="1" max="5" name="confidence" value="<%= tip.confidence || '' %>"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Tét egység (1–10)</label>
+      <input type="number" min="1" max="10" name="stake" value="<%= tip.stake || '' %>"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand" />
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Szükséges szint</label>
+      <select name="requiredTier" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand">
+        <% tierOrder.forEach(function(code){ %>
+          <option value="<%= code %>" <%= tip.requiredTier === code ? 'selected' : '' %>><%= tiers[code].label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Eredmény</label>
+      <select name="result" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand">
+        <% resultOrder.forEach(function(code){ %>
+          <option value="<%= code %>" <%= tip.result === code ? 'selected' : '' %>><%= results[code].label %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Elemzés / indoklás</label>
+    <textarea name="analysis" rows="3" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"><%= tip.analysis || '' %></textarea>
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="px-5 py-2.5 rounded-lg bg-brand text-white font-semibold hover:bg-brand-dark">Mentés</button>
+    <a href="/admin/meccsek/<%= tip.matchId %>" class="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200">Mégse</a>
+  </div>
+</form>

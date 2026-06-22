@@ -1,0 +1,109 @@
+// Prisma séma – Sportfog
+// Alapértelmezetten SQLite-ot használ, hogy külön adatbázis-szerver nélkül,
+// bármilyen "sima" webszerveren fusson. PostgreSQL-re váltáshoz írd át a
+// provider mezőt "postgresql"-re, és frissítsd a DATABASE_URL-t a .env-ben.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Felhasználók ---------------------------------------------------------
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  passwordHash     String
+  name             String?
+  role             String        @default("USER") // USER | ADMIN
+  stripeCustomerId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  grants           AccessGrant[]
+}
+
+// --- Foci meccsek ---------------------------------------------------------
+
+model Match {
+  id        String   @id @default(cuid())
+  sport     String   @default("FOOTBALL")
+  league    String? // pl. "OTP Bank Liga", "Premier League"
+  homeTeam  String
+  awayTeam  String
+  kickoffAt DateTime
+  status    String   @default("SCHEDULED") // SCHEDULED | FINISHED | CANCELLED
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tips      Tip[]
+
+  @@index([kickoffAt])
+}
+
+// --- Tippek (egy meccshez több tipp tartozhat) ----------------------------
+
+model Tip {
+  id           String   @id @default(cuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  betType      String // RESULT_1X2 | DOUBLE_CHANCE | OVER_UNDER_GOALS | BTTS | CORNERS | CARDS | HALFTIME_RESULT | HANDICAP | OTHER
+  selection    String // pl. "Hazai (1)", "Over 2.5", "Mindkét csapat gólt szerez – Igen"
+  line         Float? // pl. 2.5 (over/under értékhez)
+  odds         Float? // ajánlott odds
+  confidence   Int? // 1..5 bizalmi szint
+  stake        Int? // 1..10 javasolt tét egység
+  requiredTier String   @default("BASIC") // BASIC | PREMIUM | VIP – melyik szinttől látható
+  analysis     String? // indoklás / elemzés
+  result       String   @default("PENDING") // PENDING | WON | LOST | VOID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([matchId])
+  @@index([requiredTier])
+}
+
+// --- Előfizetési csomagok (szint × időtartam mátrix) ----------------------
+
+model Plan {
+  id            String        @id @default(cuid())
+  tier          String // BASIC | PREMIUM | VIP
+  durationCode  String // DAY_1 | DAY_3 | WEEK_1 | MONTH_1 | MONTH_3 | MONTH_6 | YEAR_1
+  durationDays  Int
+  priceHuf      Int
+  stripePriceId String? // opcionális, ha előre létrehozott Stripe Price-t használsz
+  active        Boolean       @default(true)
+  grants        AccessGrant[]
+
+  @@unique([tier, durationCode])
+}
+
+// --- Megvásárolt hozzáférés (időkorlátos) ---------------------------------
+
+model AccessGrant {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                String?
+  plan                  Plan?    @relation(fields: [planId], references: [id])
+  tier                  String
+  durationDays          Int
+  amountHuf             Int?
+  startsAt              DateTime @default(now())
+  expiresAt             DateTime
+  status                String   @default("PENDING") // PENDING | PAID | FAILED | CANCELLED
+  source                String   @default("STRIPE") // STRIPE | MANUAL
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  invoiceNumber         String? // Számlázz.hu számlaszám
+  invoiceError          String? // ha a számlázás hibára futott
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}

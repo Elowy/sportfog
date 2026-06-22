@@ -1,0 +1,62 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-6">Fiókom</h1>
+
+<div class="grid gap-6 md:grid-cols-3 mb-8">
+  <div class="md:col-span-1 bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-sm text-slate-500">Bejelentkezve mint</div>
+    <div class="font-semibold text-slate-900 break-words"><%= currentUser.name || currentUser.email %></div>
+    <div class="text-sm text-slate-500 break-words"><%= currentUser.email %></div>
+  </div>
+
+  <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-sm text-slate-500 mb-1">Előfizetés állapota</div>
+    <% if (access && access.active) { %>
+      <div class="flex items-center gap-2">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border border-emerald-200"><%= access.tierLabel %> aktív</span>
+      </div>
+      <p class="text-sm text-slate-600 mt-2">A(z) <strong><%= access.tierLabel %></strong> szint eddig érvényes: <strong><%= formatDateTime(access.expiresAt) %></strong>.</p>
+      <a href="/elofizetes" class="inline-block mt-3 text-sm font-semibold text-brand hover:underline">Hosszabbítás / magasabb szint →</a>
+    <% } else { %>
+      <p class="text-slate-600 text-sm">Jelenleg nincs aktív előfizetésed.</p>
+      <a href="/elofizetes" class="inline-block mt-3 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Előfizetek</a>
+    <% } %>
+  </div>
+</div>
+
+<h2 class="text-lg font-bold text-slate-900 mb-3">Vásárlási előzmények</h2>
+<% if (!grants || grants.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">Még nincs vásárlásod.</div>
+<% } else { %>
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-500 text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Dátum</th>
+            <th class="px-4 py-3 font-medium">Szint</th>
+            <th class="px-4 py-3 font-medium">Időtartam</th>
+            <th class="px-4 py-3 font-medium">Összeg</th>
+            <th class="px-4 py-3 font-medium">Állapot</th>
+            <th class="px-4 py-3 font-medium">Lejárat</th>
+            <th class="px-4 py-3 font-medium">Számla</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% grants.forEach(function(g){
+               var statusBadge = g.status === 'PAID' ? 'bg-emerald-100 text-emerald-700'
+                               : g.status === 'PENDING' ? 'bg-amber-100 text-amber-700'
+                               : 'bg-slate-100 text-slate-600'; %>
+            <tr>
+              <td class="px-4 py-3 text-slate-600"><%= formatDate(g.createdAt) %></td>
+              <td class="px-4 py-3 font-medium text-slate-800"><%= domain.tierLabel(g.tier) %></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.durationDays %> nap</td>
+              <td class="px-4 py-3 text-slate-600"><%= g.amountHuf != null ? formatHuf(g.amountHuf) : '–' %></td>
+              <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold <%= statusBadge %>"><%= g.status %></span></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.status === 'PAID' ? formatDate(g.expiresAt) : '–' %></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.invoiceNumber || (g.source === 'MANUAL' ? '–' : (g.status === 'PAID' ? 'folyamatban' : '–')) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>

@@ -1,0 +1,76 @@
+<!-- Hero -->
+<section class="rounded-2xl bg-slate-900 text-white overflow-hidden mb-10">
+  <div class="px-6 py-12 sm:px-12 sm:py-16 max-w-3xl">
+    <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+      Profi foci tippek, <span class="text-brand">átlátható eredményekkel</span>
+    </h1>
+    <p class="mt-4 text-slate-300 text-lg">
+      Napi szinten frissülő sportfogadási tippek: 1X2, gólok, szögletek, lapok és még sok más.
+      Válassz időtávot és előfizetési szintet – a többit ránk bízhatod.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="/elofizetes" class="px-5 py-3 rounded-lg bg-brand hover:bg-brand-dark font-semibold">Előfizetek</a>
+      <a href="/tippek" class="px-5 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 font-semibold">Tippek megtekintése</a>
+    </div>
+  </div>
+</section>
+
+<!-- Statisztika -->
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-slate-900"><%= stats.total %></div>
+    <div class="text-sm text-slate-500">Lezárt tipp</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-emerald-600"><%= stats.won %></div>
+    <div class="text-sm text-slate-500">Nyertes</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-red-500"><%= stats.lost %></div>
+    <div class="text-sm text-slate-500">Vesztes</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-brand"><%= stats.winRate !== null ? stats.winRate + '%' : '–' %></div>
+    <div class="text-sm text-slate-500">Találati arány</div>
+  </div>
+</section>
+
+<!-- Közelgő tippek -->
+<section class="mb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-slate-900">Közelgő tippek</h2>
+    <a href="/tippek" class="text-sm font-semibold text-brand hover:underline">Összes tipp →</a>
+  </div>
+
+  <% if (!upcoming || upcoming.length === 0) { %>
+    <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+      Jelenleg nincs közelgő tipp. Nézz vissza később!
+    </div>
+  <% } else { %>
+    <div class="grid gap-4 md:grid-cols-2">
+      <% upcoming.forEach(function(match){ %>
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+            <span><%= match.league || 'Foci' %></span>
+            <span><%= formatDateTime(match.kickoffAt) %></span>
+          </div>
+          <div class="font-bold text-slate-900 mb-2"><%= match.homeTeam %> – <%= match.awayTeam %></div>
+          <div>
+            <% match.tips.slice(0, 3).forEach(function(tip){ %>
+              <%- include('partials/tip_row', { tip: tip }) %>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<!-- CTA -->
+<% if (!access || !access.active) { %>
+<section class="rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white p-8 text-center">
+  <h2 class="text-2xl font-bold mb-2">Oldd fel az összes tippet!</h2>
+  <p class="text-indigo-100 mb-6">Válassz az Alap, Prémium és VIP csomagok közül – 1 naptól 1 évig.</p>
+  <a href="/elofizetes" class="inline-block px-6 py-3 rounded-lg bg-white text-indigo-700 font-bold hover:bg-indigo-50">Csomagok megtekintése</a>
+</section>
+<% } %>

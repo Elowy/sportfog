@@ -1,0 +1,58 @@
+<div class="text-center mb-8">
+  <h1 class="text-3xl font-bold text-slate-900 mb-2">Előfizetési csomagok</h1>
+  <p class="text-slate-600">Válaszd ki a szintet és az időtávot. A magasabb szint a kisebb szintek tippjeit is tartalmazza.</p>
+</div>
+
+<% if (!stripeEnabled) { %>
+  <div class="max-w-2xl mx-auto bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3 text-sm mb-6 text-center">
+    A fizetés jelenleg teszt üzemmódban nincs beállítva (hiányzó Stripe kulcs). A vásárlás gomb nem indít fizetést.
+  </div>
+<% } %>
+
+<%
+  var descriptions = {
+    BASIC: 'Alapszintű tippek a legfontosabb meccsekre.',
+    PREMIUM: 'Bővített tippkínálat, részletes elemzésekkel. Az Alap tippeket is tartalmazza.',
+    VIP: 'Teljes hozzáférés minden tipphez, a legmagasabb bizalmi szintű fogadásokkal.'
+  };
+  var ring = { BASIC: 'border-slate-200', PREMIUM: 'border-indigo-300 ring-2 ring-indigo-200', VIP: 'border-amber-300 ring-2 ring-amber-200' };
+  var head = { BASIC: 'text-slate-700', PREMIUM: 'text-indigo-700', VIP: 'text-amber-700' };
+%>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <% tierOrder.forEach(function(tierCode){
+       var tier = tiers[tierCode]; %>
+    <div class="bg-white rounded-2xl border p-6 <%= ring[tierCode] %>">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-xl font-bold <%= head[tierCode] %>"><%= tier.label %></h2>
+        <% if (tierCode === 'PREMIUM') { %><span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">Népszerű</span><% } %>
+      </div>
+      <p class="text-sm text-slate-500 mb-4 min-h-[40px]"><%= descriptions[tierCode] %></p>
+
+      <div class="space-y-2">
+        <% durationOrder.forEach(function(durCode){
+             var plan = matrix[tierCode] && matrix[tierCode][durCode];
+             var dur = durations[durCode];
+             if (!plan) return; %>
+          <form action="/elofizetes/checkout" method="post"
+            class="flex items-center justify-between gap-3 border border-slate-100 rounded-lg px-3 py-2 hover:border-brand transition">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <input type="hidden" name="planId" value="<%= plan.id %>" />
+            <div>
+              <div class="text-sm font-semibold text-slate-800"><%= dur.label %></div>
+              <div class="text-xs text-slate-500"><%= formatHuf(plan.priceHuf) %></div>
+            </div>
+            <button type="submit" <%= stripeEnabled ? '' : 'disabled' %>
+              class="px-3 py-1.5 rounded-lg text-sm font-semibold <%= stripeEnabled ? 'bg-brand text-white hover:bg-brand-dark' : 'bg-slate-200 text-slate-400 cursor-not-allowed' %>">
+              Megveszem
+            </button>
+          </form>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<p class="text-center text-xs text-slate-500 mt-8">
+  A fizetés a Stripe biztonságos felületén történik. A sikeres fizetésről automatikus számlát állítunk ki (Számlázz.hu).
+</p>
