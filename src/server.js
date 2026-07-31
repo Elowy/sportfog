@@ -113,6 +113,7 @@ app.use('/', require('./routes/auth'));
 app.use('/tippek', require('./routes/tips'));
 app.use('/elofizetes', require('./routes/subscribe'));
 app.use('/fiok', require('./routes/account'));
+app.use('/statisztika', require('./routes/stats'));
 app.use('/admin', require('./routes/admin'));
 
 // 404

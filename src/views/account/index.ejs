@@ -22,6 +22,23 @@
   </div>
 </div>
 
+<!-- Statisztika összefoglaló -->
+<div class="bg-white rounded-xl border border-slate-200 p-5 mb-8">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">📊</span>
+      <h2 class="text-lg font-bold text-slate-900">Teljesítmény</h2>
+    </div>
+    <a href="/statisztika" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Részletes statisztika →</a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="text-center"><div class="text-2xl font-extrabold text-slate-900"><%= statSummary.total %></div><div class="text-xs text-slate-500">Lezárt tipp</div></div>
+    <div class="text-center"><div class="text-2xl font-extrabold text-emerald-600"><%= statSummary.won %></div><div class="text-xs text-slate-500">Nyert</div></div>
+    <div class="text-center"><div class="text-2xl font-extrabold text-red-500"><%= statSummary.lost %></div><div class="text-xs text-slate-500">Vesztett</div></div>
+    <div class="text-center"><div class="text-2xl font-extrabold text-brand"><%= statSummary.winRate === null ? '–' : Math.round(statSummary.winRate * 100) + '%' %></div><div class="text-xs text-slate-500">Találati arány</div></div>
+  </div>
+</div>
+
 <% if (channels.any) { %>
   <div class="bg-white rounded-xl border border-slate-200 p-5 mb-8">
     <div class="flex items-center gap-2 mb-4">

@@ -8,6 +8,7 @@ const email = require('../lib/email');
 const webpush = require('../lib/webpush');
 const { requireAuth } = require('../middleware/auth');
 const { ensureLinkCode } = require('../services/notifications');
+const { summarize } = require('../lib/stats');
 
 router.get('/', requireAuth, async (req, res, next) => {
   try {
@@ -21,10 +22,18 @@ router.get('/', requireAuth, async (req, res, next) => {
       include: { plan: true },
     });
 
+    // Rövid összesített teljesítmény (a részletes bontás a /statisztika oldalon).
+    const settledTips = await prisma.tip.findMany({
+      where: { result: { in: ['WON', 'LOST', 'VOID'] } },
+      select: { result: true, odds: true, stake: true },
+    });
+    const statSummary = summarize(settledTips);
+
     res.render('account/index', {
       title: 'Fiókom',
       user,
       grants,
+      statSummary,
       channels: {
         email: email.isEnabled(),
         telegram: telegram.isEnabled(),
