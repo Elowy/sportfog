@@ -186,19 +186,27 @@ async function notifyNewTip(tipId) {
 }
 
 // --- Admin kézi körüzenet ------------------------------------------------
-// audience: 'all' | 'active'. channels: csatorna-szűrő.
+// audience: 'all' | 'active' | 'lapsed' (lejárt: fizetett valaha, de most nem aktív).
 async function broadcast({ audience, channels, title, text }) {
   if (!text || !text.trim()) return { users: 0, sent: 0, error: 'Üres üzenet.' };
   const recipients = await prisma.user.findMany({
     where: { OR: [{ notifyEmail: true }, { notifyTelegram: true }, { notifyMessenger: true }, { notifyWebPush: true }] },
   });
 
+  // A „lejárt" célközönséghez előre kigyűjtjük, ki fizetett valaha.
+  let everPaidSet = null;
+  if (audience === 'lapsed') {
+    const paid = await prisma.accessGrant.findMany({ where: { status: 'PAID' }, select: { userId: true }, distinct: ['userId'] });
+    everPaidSet = new Set(paid.map((p) => p.userId));
+  }
+
   const payload = { title: title && title.trim() ? title.trim() : 'Sportfog értesítés', text: text.trim(), url: config.baseUrl };
   let users = 0, sent = 0;
   for (const user of recipients) {
-    if (audience === 'active') {
+    if (audience === 'active' || audience === 'lapsed') {
       const access = await getActiveAccess(prisma, user.id);
-      if (!access.active) continue;
+      if (audience === 'active' && !access.active) continue;
+      if (audience === 'lapsed' && (access.active || !everPaidSet.has(user.id))) continue;
     }
     const s = await dispatchToUser(user, payload, channels && channels.length ? channels : null);
     if (s > 0) { users++; sent += s; }

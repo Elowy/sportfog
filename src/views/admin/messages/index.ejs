@@ -7,11 +7,12 @@
   </div>
 <% } %>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
   <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.emailOn %></div><div class="text-xs text-slate-500">E-mail feliratkozó</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.telegramOn %></div><div class="text-xs text-slate-500">Telegram</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.messengerOn %></div><div class="text-xs text-slate-500">Messenger</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4"><div class="text-2xl font-extrabold text-slate-900"><%= stats.webpushOn %></div><div class="text-xs text-slate-500">Böngésző push</div></div>
+  <div class="bg-white rounded-xl border border-amber-200 p-4"><div class="text-2xl font-extrabold text-amber-600"><%= stats.lapsed %></div><div class="text-xs text-slate-500">Lejárt előfizető</div></div>
 </div>
 
 <% if (result) { %>
@@ -28,7 +29,9 @@
     <select name="audience" class="w-full sm:w-72 rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand">
       <option value="all">Mindenki (aki kér értesítést)</option>
       <option value="active">Csak aktív előfizetők</option>
+      <option value="lapsed">Lejárt előfizetők (win-back)</option>
     </select>
+    <p class="text-xs text-slate-500 mt-1">A „lejárt" azokat jelenti, akik korábban fizettek, de jelenleg nincs aktív előfizetésük.</p>
   </div>
 
   <div>

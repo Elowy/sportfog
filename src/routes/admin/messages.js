@@ -5,13 +5,19 @@ const prisma = require('../../db');
 const notifications = require('../../services/notifications');
 
 async function stats() {
-  const [emailOn, telegramOn, messengerOn, webpushOn] = await Promise.all([
+  const now = new Date();
+  const [emailOn, telegramOn, messengerOn, webpushOn, everPaid, activeUsers] = await Promise.all([
     prisma.user.count({ where: { notifyEmail: true } }),
     prisma.user.count({ where: { notifyTelegram: true, telegramChatId: { not: null } } }),
     prisma.user.count({ where: { notifyMessenger: true, messengerPsid: { not: null } } }),
     prisma.user.count({ where: { notifyWebPush: true } }),
+    prisma.accessGrant.findMany({ where: { status: 'PAID' }, select: { userId: true }, distinct: ['userId'] }),
+    prisma.accessGrant.findMany({ where: { status: 'PAID', expiresAt: { gt: now } }, select: { userId: true }, distinct: ['userId'] }),
   ]);
-  return { emailOn, telegramOn, messengerOn, webpushOn };
+  const activeSet = new Set(activeUsers.map((u) => u.userId));
+  // Lejárt: aki fizetett valaha, de most nincs aktív előfizetése.
+  const lapsed = everPaid.filter((p) => !activeSet.has(p.userId)).length;
+  return { emailOn, telegramOn, messengerOn, webpushOn, lapsed };
 }
 
 function viewData(extra) {
@@ -33,7 +39,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const audience = ['all', 'active'].includes(req.body.audience) ? req.body.audience : 'all';
+    const audience = ['all', 'active', 'lapsed'].includes(req.body.audience) ? req.body.audience : 'all';
     const title = (req.body.title || '').trim();
     const text = (req.body.text || '').trim();
     const channels = ['email', 'telegram', 'messenger', 'webpush'].filter((c) => req.body['ch_' + c] === 'on');
