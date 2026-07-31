@@ -24,6 +24,7 @@
           <% if (currentUser.role === 'ADMIN') { %>
             <a href="/admin" class="px-3 py-2 rounded-md text-amber-300 hover:bg-slate-800">Admin</a>
           <% } %>
+          <a href="/statisztika" class="px-3 py-2 rounded-md text-slate-200 hover:bg-slate-800">Statisztika</a>
           <a href="/fiok" class="px-3 py-2 rounded-md text-slate-200 hover:bg-slate-800">Fiókom</a>
           <form action="/kilepes" method="post" class="inline">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
