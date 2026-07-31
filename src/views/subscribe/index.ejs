@@ -1,0 +1,44 @@
+<div class="text-center mb-8">
+  <h1 class="text-3xl font-bold text-slate-900 mb-2">Előfizetés</h1>
+  <p class="text-slate-600">Egy csomag, minden tipphez hozzáférés. Válaszd ki a neked megfelelő futamidőt.</p>
+</div>
+
+<% if (!stripeEnabled) { %>
+  <div class="max-w-2xl mx-auto bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3 text-sm mb-6 text-center">
+    A fizetés jelenleg nincs beállítva (hiányzó Stripe kulcs). A vásárlás gomb nem indít fizetést.
+  </div>
+<% } %>
+
+<div class="max-w-2xl mx-auto bg-white rounded-2xl border border-indigo-200 ring-2 ring-indigo-100 p-6">
+  <div class="flex items-center justify-between mb-1">
+    <h2 class="text-xl font-bold text-indigo-700">Sportfog előfizetés</h2>
+    <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">Teljes hozzáférés</span>
+  </div>
+  <p class="text-sm text-slate-500 mb-5">Minden tipp elérhető: 1X2, gólok, szögletek, lapok és több. Válaszd ki a futamidőt:</p>
+
+  <% if (!options || options.length === 0) { %>
+    <div class="text-center text-slate-500 py-6">Jelenleg nincs elérhető csomag.</div>
+  <% } else { %>
+    <div class="space-y-2">
+      <% options.forEach(function(o){ %>
+        <form action="/elofizetes/checkout" method="post"
+          class="flex items-center justify-between gap-3 border border-slate-100 rounded-lg px-4 py-3 hover:border-brand transition">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <input type="hidden" name="planId" value="<%= o.plan.id %>" />
+          <div>
+            <div class="text-base font-semibold text-slate-800"><%= o.duration.label %></div>
+            <div class="text-sm text-slate-500"><%= formatHuf(o.plan.priceHuf) %></div>
+          </div>
+          <button type="submit" <%= stripeEnabled ? '' : 'disabled' %>
+            class="px-4 py-2 rounded-lg text-sm font-semibold <%= stripeEnabled ? 'bg-brand text-white hover:bg-brand-dark' : 'bg-slate-200 text-slate-400 cursor-not-allowed' %>">
+            Megveszem
+          </button>
+        </form>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<p class="text-center text-xs text-slate-500 mt-8">
+  A fizetés a Stripe biztonságos felületén történik. A sikeres fizetésről automatikus számlát állítunk ki (Számlázz.hu).
+</p>

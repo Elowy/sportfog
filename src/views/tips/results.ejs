@@ -1,0 +1,44 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-2">Eredmények</h1>
+<p class="text-slate-600 mb-6">Korábbi tippjeink átlátható eredménysorral. A múltbeli teljesítmény nyilvános.</p>
+
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-emerald-600"><%= stats.won %></div>
+    <div class="text-sm text-slate-500">Nyertes</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-red-500"><%= stats.lost %></div>
+    <div class="text-sm text-slate-500">Vesztes</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-slate-500"><%= stats.voided %></div>
+    <div class="text-sm text-slate-500">Érvénytelen</div>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 text-center">
+    <div class="text-3xl font-extrabold text-brand"><%= stats.winRate !== null ? stats.winRate + '%' : '–' %></div>
+    <div class="text-sm text-slate-500">Találati arány</div>
+  </div>
+</section>
+
+<% if (!matches || matches.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+    Még nincsenek lezárt eredmények.
+  </div>
+<% } else { %>
+  <div class="space-y-4">
+    <% matches.forEach(function(match){ %>
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+          <span class="font-semibold"><%= match.league || 'Foci' %></span>
+          <span><%= formatDateTime(match.kickoffAt) %></span>
+        </div>
+        <div class="font-bold text-slate-900 text-lg mb-1"><%= match.homeTeam %> – <%= match.awayTeam %></div>
+        <div>
+          <% match.tips.forEach(function(tip){ %>
+            <%- include('../partials/tip_row', { tip: tip, reveal: true }) %>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>

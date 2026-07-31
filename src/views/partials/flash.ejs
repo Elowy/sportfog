@@ -1,0 +1,10 @@
+<% if (typeof flash !== 'undefined' && flash && flash.length) { %>
+  <div class="space-y-2 mb-6">
+    <% flash.forEach(function(f){
+         var cls = f.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                 : f.type === 'error'   ? 'bg-red-50 text-red-800 border-red-200'
+                 :                        'bg-blue-50 text-blue-800 border-blue-200'; %>
+      <div class="border rounded-lg px-4 py-3 text-sm <%= cls %>"><%= f.message %></div>
+    <% }) %>
+  </div>
+<% } %>

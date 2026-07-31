@@ -1,0 +1,47 @@
+<header class="bg-slate-900 text-white shadow">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-2 font-bold text-lg">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-brand">⚽</span>
+        <span><%= siteName %></span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1 text-sm">
+        <% function navClass(path, current){ return current === path || (path !== '/' && current.indexOf(path) === 0) ? 'px-3 py-2 rounded-md bg-slate-800 text-white' : 'px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800'; } %>
+        <a href="/" class="<%= navClass('/', currentPath) %>">Kezdőlap</a>
+        <a href="/tippek" class="<%= navClass('/tippek', currentPath) %>">Tippek</a>
+        <a href="/tippek/eredmenyek" class="<%= navClass('/tippek/eredmenyek', currentPath) %>">Eredmények</a>
+        <a href="/elofizetes" class="<%= navClass('/elofizetes', currentPath) %>">Előfizetés</a>
+      </nav>
+
+      <div class="flex items-center gap-2 text-sm">
+        <% if (currentUser) { %>
+          <% if (access && access.active) { %>
+            <span class="hidden sm:inline-block px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+              Előfizetés aktív
+            </span>
+          <% } %>
+          <% if (currentUser.role === 'ADMIN') { %>
+            <a href="/admin" class="px-3 py-2 rounded-md text-amber-300 hover:bg-slate-800">Admin</a>
+          <% } %>
+          <a href="/fiok" class="px-3 py-2 rounded-md text-slate-200 hover:bg-slate-800">Fiókom</a>
+          <form action="/kilepes" method="post" class="inline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="px-3 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800">Kilépés</button>
+          </form>
+        <% } else { %>
+          <a href="/belepes" class="px-3 py-2 rounded-md text-slate-200 hover:bg-slate-800">Belépés</a>
+          <a href="/regisztracio" class="px-3 py-2 rounded-md bg-brand hover:bg-brand-dark text-white font-semibold">Regisztráció</a>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Mobil navigáció -->
+    <nav class="md:hidden flex items-center gap-1 text-sm pb-3 overflow-x-auto">
+      <a href="/" class="px-3 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 whitespace-nowrap">Kezdőlap</a>
+      <a href="/tippek" class="px-3 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 whitespace-nowrap">Tippek</a>
+      <a href="/tippek/eredmenyek" class="px-3 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 whitespace-nowrap">Eredmények</a>
+      <a href="/elofizetes" class="px-3 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 whitespace-nowrap">Előfizetés</a>
+    </nav>
+  </div>
+</header>

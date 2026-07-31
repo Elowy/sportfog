@@ -1,0 +1,22 @@
+node_modules/
+.env
+*.log
+
+# SQLite adatbázis és session fájlok
+prisma/*.db
+prisma/*.db-journal
+*.sqlite
+*.sqlite3
+sessions.db
+sessions.sqlite3
+data/
+
+# Generált Prisma kliens
+prisma/generated/
+
+# Feltöltött / generált számla PDF-ek
+storage/invoices/
+
+# OS
+.DS_Store
+Thumbs.db

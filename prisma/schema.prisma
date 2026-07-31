@@ -1,0 +1,142 @@
+// Prisma séma – Sportfog
+// Alapértelmezetten SQLite-ot használ, hogy külön adatbázis-szerver nélkül,
+// bármilyen "sima" webszerveren fusson. PostgreSQL-re váltáshoz írd át a
+// provider mezőt "postgresql"-re, és frissítsd a DATABASE_URL-t a .env-ben.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Munkamenetek (express-session tárolása) ------------------------------
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}
+
+// --- Felhasználók ---------------------------------------------------------
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  passwordHash     String
+  name             String?
+  role             String        @default("USER") // USER | ADMIN
+  stripeCustomerId String?
+  // Értesítési csatornák összekapcsolása
+  linkCode         String?       @unique // általános összekötő kód (Telegram/Messenger)
+  messengerPsid    String?       @unique // Facebook Page-Scoped ID
+  telegramChatId   String?       @unique // Telegram chat azonosító
+  // Értesítési preferenciák (regisztrációkor megadható)
+  notifyEmail      Boolean       @default(false)
+  notifyTelegram   Boolean       @default(false)
+  notifyMessenger  Boolean       @default(false)
+  notifyWebPush    Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  grants           AccessGrant[]
+  pushSubs         PushSubscription[]
+}
+
+// Böngésző push feliratkozások (Web Push)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Admin felületen szerkeszthető beállítások (felülírják a .env értékeket)
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// --- Foci meccsek ---------------------------------------------------------
+
+model Match {
+  id        String   @id @default(cuid())
+  sport     String   @default("FOOTBALL")
+  league    String? // pl. "OTP Bank Liga", "Premier League"
+  homeTeam  String
+  awayTeam  String
+  kickoffAt DateTime
+  status    String   @default("SCHEDULED") // SCHEDULED | FINISHED | CANCELLED
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tips      Tip[]
+
+  @@index([kickoffAt])
+}
+
+// --- Tippek (egy meccshez több tipp tartozhat) ----------------------------
+
+model Tip {
+  id           String   @id @default(cuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  betType      String // RESULT_1X2 | DOUBLE_CHANCE | OVER_UNDER_GOALS | BTTS | CORNERS | CARDS | HALFTIME_RESULT | HANDICAP | OTHER
+  selection    String // pl. "Hazai (1)", "Over 2.5", "Mindkét csapat gólt szerez – Igen"
+  line         Float? // pl. 2.5 (over/under értékhez)
+  odds         Float? // ajánlott odds
+  confidence   Int? // 1..5 bizalmi szint
+  stake        Int? // 1..10 javasolt tét egység
+  analysis     String? // indoklás / elemzés
+  result       String   @default("PENDING") // PENDING | WON | LOST | VOID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([matchId])
+}
+
+// --- Előfizetési csomag (egy csomag, változtatható futamidővel) -----------
+
+model Plan {
+  id            String        @id @default(cuid())
+  durationCode  String        @unique // DAY_1 | WEEK_1 | MONTH_1 | MONTH_3 | MONTH_6 | YEAR_1
+  durationDays  Int
+  priceHuf      Int
+  stripePriceId String? // opcionális, ha előre létrehozott Stripe Price-t használsz
+  active        Boolean       @default(true)
+  grants        AccessGrant[]
+}
+
+// --- Megvásárolt hozzáférés (időkorlátos) ---------------------------------
+
+model AccessGrant {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                String?
+  plan                  Plan?    @relation(fields: [planId], references: [id])
+  durationDays          Int
+  amountHuf             Int?
+  startsAt              DateTime @default(now())
+  expiresAt             DateTime
+  status                String   @default("PENDING") // PENDING | PAID | FAILED | CANCELLED
+  source                String   @default("STRIPE") // STRIPE | MANUAL
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  invoiceNumber         String? // Számlázz.hu számlaszám
+  invoiceError          String? // ha a számlázás hibára futott
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}

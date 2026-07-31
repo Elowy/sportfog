@@ -1,0 +1,140 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-6">Fiókom</h1>
+
+<div class="grid gap-6 md:grid-cols-3 mb-8">
+  <div class="md:col-span-1 bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-sm text-slate-500">Bejelentkezve mint</div>
+    <div class="font-semibold text-slate-900 break-words"><%= currentUser.name || currentUser.email %></div>
+    <div class="text-sm text-slate-500 break-words"><%= currentUser.email %></div>
+  </div>
+
+  <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+    <div class="text-sm text-slate-500 mb-1">Előfizetés állapota</div>
+    <% if (access && access.active) { %>
+      <div class="flex items-center gap-2">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border border-emerald-200">Előfizetés aktív</span>
+      </div>
+      <p class="text-sm text-slate-600 mt-2">Az előfizetésed eddig érvényes: <strong><%= formatDateTime(access.expiresAt) %></strong>.</p>
+      <a href="/elofizetes" class="inline-block mt-3 text-sm font-semibold text-brand hover:underline">Hosszabbítás →</a>
+    <% } else { %>
+      <p class="text-slate-600 text-sm">Jelenleg nincs aktív előfizetésed.</p>
+      <a href="/elofizetes" class="inline-block mt-3 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Előfizetek</a>
+    <% } %>
+  </div>
+</div>
+
+<% if (channels.any) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-5 mb-8">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-xl">🔔</span>
+      <h2 class="text-lg font-bold text-slate-900">Értesítések az új tippekről</h2>
+    </div>
+
+    <!-- Preferenciák -->
+    <form action="/fiok/ertesitesek" method="post" class="mb-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <div class="grid sm:grid-cols-2 gap-2 mb-3">
+        <% if (channels.email) { %>
+          <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="notifyEmail" class="h-4 w-4" <%= user.notifyEmail ? 'checked' : '' %> /> E-mail (<%= user.email %>)</label>
+        <% } %>
+        <% if (channels.telegram) { %>
+          <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="notifyTelegram" class="h-4 w-4" <%= user.notifyTelegram ? 'checked' : '' %> /> Telegram</label>
+        <% } %>
+        <% if (channels.messenger) { %>
+          <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="notifyMessenger" class="h-4 w-4" <%= user.notifyMessenger ? 'checked' : '' %> /> Messenger</label>
+        <% } %>
+        <% if (channels.webpush) { %>
+          <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="notifyWebPush" class="h-4 w-4" <%= user.notifyWebPush ? 'checked' : '' %> /> Böngésző értesítés</label>
+        <% } %>
+      </div>
+      <button type="submit" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Beállítások mentése</button>
+    </form>
+
+    <div class="space-y-3 border-t border-slate-100 pt-4">
+      <!-- Telegram -->
+      <% if (channels.telegram) { %>
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-sm"><span class="font-semibold">Telegram</span>
+            <% if (user.telegramChatId) { %><span class="text-emerald-600">– összekapcsolva ✅</span><% } else { %><span class="text-slate-500">– nincs összekapcsolva</span><% } %>
+          </div>
+          <% if (user.telegramChatId) { %>
+            <form action="/fiok/telegram/levalaszt" method="post"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="text-sm text-slate-500 hover:underline">Leválasztás</button></form>
+          <% } else if (tgLink) { %>
+            <a href="<%= tgLink %>" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-[#229ED9] text-white text-sm font-semibold hover:opacity-90">Megnyitás Telegramban</a>
+          <% } %>
+        </div>
+      <% } %>
+
+      <!-- Messenger -->
+      <% if (channels.messenger) { %>
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-sm"><span class="font-semibold">Messenger</span>
+            <% if (user.messengerPsid) { %><span class="text-emerald-600">– összekapcsolva ✅</span><% } else { %><span class="text-slate-500">– küldd el a kódodat a botnak</span><% } %>
+          </div>
+          <% if (user.messengerPsid) { %>
+            <form action="/fiok/messenger/levalaszt" method="post"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="text-sm text-slate-500 hover:underline">Leválasztás</button></form>
+          <% } else if (mMeLink) { %>
+            <a href="<%= mMeLink %>" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-[#0084FF] text-white text-sm font-semibold hover:opacity-90">Megnyitás Messengerben</a>
+          <% } %>
+        </div>
+      <% } %>
+
+      <!-- Web Push -->
+      <% if (channels.webpush) { %>
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-sm"><span class="font-semibold">Böngésző értesítés</span>
+            <span class="text-slate-500">– eszközönként engedélyezhető</span>
+          </div>
+          <button id="pushBtn" data-vapid="<%= vapidPublicKey %>" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700">Bekapcsolás ezen az eszközön</button>
+        </div>
+      <% } %>
+
+      <!-- Összekötő kód (Telegram/Messenger) -->
+      <% if ((channels.telegram || channels.messenger) && (!user.telegramChatId || !user.messengerPsid)) { %>
+        <div class="bg-slate-50 rounded-lg p-3 text-sm">
+          Összekötő kódod: <code class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono tracking-wider"><%= user.linkCode || '—' %></code>
+          <span class="text-slate-500">— küldd el a botnak (Messengeren), vagy a Telegram-gomb automatikusan átadja.</span>
+          <form action="/fiok/kod/uj" method="post" class="inline ml-2"><input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button class="text-xs text-slate-400 hover:underline">új kód</button></form>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (channels.webpush) { %><script src="/js/push.js" defer></script><% } %>
+<% } %>
+
+<h2 class="text-lg font-bold text-slate-900 mb-3">Vásárlási előzmények</h2>
+<% if (!grants || grants.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">Még nincs vásárlásod.</div>
+<% } else { %>
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-slate-500 text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Dátum</th>
+            <th class="px-4 py-3 font-medium">Időtartam</th>
+            <th class="px-4 py-3 font-medium">Összeg</th>
+            <th class="px-4 py-3 font-medium">Állapot</th>
+            <th class="px-4 py-3 font-medium">Lejárat</th>
+            <th class="px-4 py-3 font-medium">Számla</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <% grants.forEach(function(g){
+               var statusBadge = g.status === 'PAID' ? 'bg-emerald-100 text-emerald-700'
+                               : g.status === 'PENDING' ? 'bg-amber-100 text-amber-700'
+                               : 'bg-slate-100 text-slate-600'; %>
+            <tr>
+              <td class="px-4 py-3 text-slate-600"><%= formatDate(g.createdAt) %></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.durationDays %> nap</td>
+              <td class="px-4 py-3 text-slate-600"><%= g.amountHuf != null ? formatHuf(g.amountHuf) : '–' %></td>
+              <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold <%= statusBadge %>"><%= g.status %></span></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.status === 'PAID' ? formatDate(g.expiresAt) : '–' %></td>
+              <td class="px-4 py-3 text-slate-600"><%= g.invoiceNumber || (g.source === 'MANUAL' ? '–' : (g.status === 'PAID' ? 'folyamatban' : '–')) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>

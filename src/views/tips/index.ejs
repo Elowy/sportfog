@@ -1,0 +1,68 @@
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <h1 class="text-2xl font-bold text-slate-900">Tippek</h1>
+  <a href="/tippek/eredmenyek" class="text-sm font-semibold text-brand hover:underline">Korábbi eredmények →</a>
+</div>
+
+<% if (!access || !access.active) { %>
+  <div class="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-4 mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div class="text-indigo-900 text-sm">
+      <strong>Nincs aktív előfizetésed.</strong> A tippek részletei (kimenetel, odds) rejtve vannak. Fizess elő a feloldáshoz!
+    </div>
+    <a href="/elofizetes" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Előfizetés</a>
+  </div>
+<% } %>
+
+<!-- Szűrők -->
+<form action="/tippek" method="get" class="bg-white border border-slate-200 rounded-xl p-4 mb-6">
+  <div class="mb-3">
+    <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Időtáv</div>
+    <div class="flex flex-wrap gap-2">
+      <% windowOrder.forEach(function(code){
+           var w = domain.TIME_WINDOWS[code];
+           var active = code === windowCode; %>
+        <a href="/tippek?ido=<%= code %><%= betType ? '&tipus=' + betType : '' %>"
+           class="px-3 py-1.5 rounded-full text-sm border <%= active ? 'bg-brand text-white border-brand' : 'bg-white text-slate-600 border-slate-200 hover:border-brand' %>">
+          <%= w.label %>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+  <div class="flex items-end gap-3 flex-wrap">
+    <input type="hidden" name="ido" value="<%= windowCode %>" />
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Fogadás típusa</label>
+      <select name="tipus" onchange="this.form.submit()"
+        class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+        <option value="">Összes típus</option>
+        <% betTypeOrder.forEach(function(code){ %>
+          <option value="<%= code %>" <%= betType === code ? 'selected' : '' %>><%= domain.BET_TYPES[code].label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <button type="submit" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700">Szűrés</button>
+  </div>
+</form>
+
+<!-- Találatok -->
+<% if (!matches || matches.length === 0) { %>
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+    Nincs tipp a kiválasztott időtávra. Próbálj másik időtávot vagy típust!
+  </div>
+<% } else { %>
+  <div class="space-y-4">
+    <% matches.forEach(function(match){ %>
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+          <span class="font-semibold"><%= match.league || 'Foci' %></span>
+          <span><%= formatDateTime(match.kickoffAt) %></span>
+        </div>
+        <div class="font-bold text-slate-900 text-lg mb-1"><%= match.homeTeam %> – <%= match.awayTeam %></div>
+        <div>
+          <% match.tips.forEach(function(tip){ %>
+            <%- include('../partials/tip_row', { tip: tip }) %>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>

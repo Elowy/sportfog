@@ -1,0 +1,45 @@
+<h1 class="text-2xl font-bold text-slate-900 mb-6">Felhasználók (<%= rows.length %>)</h1>
+
+<div class="space-y-3">
+  <% rows.forEach(function(row){
+       var u = row.user; var a = row.access; %>
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold text-slate-900 break-words"><%= u.name || '(névtelen)' %></span>
+            <% if (u.role === 'ADMIN') { %><span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">ADMIN</span><% } %>
+            <% if (a && a.active) { %><span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Előfizetés aktív</span><% } %>
+          </div>
+          <div class="text-sm text-slate-500 break-words"><%= u.email %></div>
+          <div class="text-xs text-slate-400 mt-0.5">
+            Regisztrált: <%= formatDate(u.createdAt) %>
+            <% if (a && a.active) { %> · Lejár: <%= formatDate(a.expiresAt) %><% } %>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <form action="/admin/felhasznalok/<%= u.id %>/szerep" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold hover:border-brand">
+              <%= u.role === 'ADMIN' ? 'Admin jog elvétele' : 'Admin jog adása' %>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Kézi hozzáférés -->
+      <form action="/admin/felhasznalok/<%= u.id %>/hozzaferes" method="post"
+        class="mt-3 pt-3 border-t border-slate-100 flex items-end gap-2 flex-wrap">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div>
+          <label class="block text-[11px] text-slate-500 mb-1">Időtartam</label>
+          <select name="durationCode" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+            <% durationOrder.forEach(function(code){ %><option value="<%= code %>" <%= code === 'WEEK_1' ? 'selected' : '' %>><%= durations[code].label %></option><% }) %>
+          </select>
+        </div>
+        <button type="submit" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700">Hozzáférés adása</button>
+      </form>
+    </div>
+  <% }) %>
+</div>
