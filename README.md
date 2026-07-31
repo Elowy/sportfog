@@ -18,8 +18,8 @@ Egyelőre focival: a tippek típus szerint (Hazai–Döntetlen–Vendég, gólok
   beállítása futamidőnként, felhasználók kezelése (admin jog, kézi hozzáférés adása).
 - **Track record**: a lejátszott tippek eredményei nyilvánosan láthatók (találati arány).
 - **Részletes statisztika** (Fiókom → Statisztika): havi / liga / csapat / fogadási típus
-  szerinti bontás, találati arány, profit és hozam (ROI) egységben; szűrhető korábbi
-  meccsekkel, meccsenkénti elemzéssel.
+  szerinti bontás, találati arány és átlag odds; szűrhető korábbi meccsekkel,
+  meccsenkénti elemzéssel.
 
 ## Technológia
 

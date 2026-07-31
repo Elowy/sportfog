@@ -1,16 +1,8 @@
 <%
   function pct(v){ return v === null || v === undefined ? '–' : Math.round(v * 100) + '%'; }
-  function units(v){ return (v >= 0 ? '+' : '') + v.toFixed(2); }
-  function uClass(v){ return v > 0 ? 'text-emerald-600' : (v < 0 ? 'text-red-600' : 'text-slate-500'); }
   function qs(over){
     var p = Object.assign({ honap: filters.honap, tol: filters.tol, ig: filters.ig, liga: filters.liga, csapat: filters.csapat, tipus: filters.tipus, bontas: bontas }, over || {});
     return '/statisztika?' + Object.keys(p).filter(function(k){ return p[k] !== '' && p[k] != null; }).map(function(k){ return k + '=' + encodeURIComponent(p[k]); }).join('&');
-  }
-  function tipPL(tip){
-    var u = tip.stake && tip.stake > 0 ? tip.stake : 1;
-    if (tip.result === 'WON') return tip.odds ? u * (tip.odds - 1) : 0;
-    if (tip.result === 'LOST') return -u;
-    return 0;
   }
   var bontasLabels = { honap: 'Havi', liga: 'Liga', csapat: 'Csapat', tipus: 'Fogadás típusa' };
 %>
@@ -71,13 +63,12 @@
 </form>
 
 <!-- Összesítő -->
-<section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+<section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
   <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold text-slate-900"><%= summary.total %></div><div class="text-xs text-slate-500">Lezárt tipp</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold text-emerald-600"><%= summary.won %></div><div class="text-xs text-slate-500">Nyert</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold text-red-500"><%= summary.lost %></div><div class="text-xs text-slate-500">Vesztett</div></div>
   <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold text-brand"><%= pct(summary.winRate) %></div><div class="text-xs text-slate-500">Találati arány</div></div>
-  <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold <%= uClass(summary.profit) %>"><%= units(summary.profit) %></div><div class="text-xs text-slate-500">Profit (egység)</div></div>
-  <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold <%= summary.yield === null ? 'text-slate-500' : uClass(summary.yield) %>"><%= summary.yield === null ? '–' : (summary.yield >= 0 ? '+' : '') + Math.round(summary.yield * 100) + '%' %></div><div class="text-xs text-slate-500">Hozam (ROI)</div></div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4 text-center"><div class="text-2xl font-extrabold text-slate-900"><%= summary.avgOdds ? summary.avgOdds.toFixed(2) : '–' %></div><div class="text-xs text-slate-500">Átlag odds</div></div>
 </section>
 
 <!-- Bontás -->
@@ -99,13 +90,11 @@
           <th class="px-4 py-3 font-medium text-center">V</th>
           <th class="px-4 py-3 font-medium text-center">Találati %</th>
           <th class="px-4 py-3 font-medium text-center">Átlag odds</th>
-          <th class="px-4 py-3 font-medium text-center">Profit</th>
-          <th class="px-4 py-3 font-medium text-center">Hozam</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         <% if (groups.length === 0) { %>
-          <tr><td colspan="8" class="px-4 py-6 text-center text-slate-500">Nincs adat a szűrőkhöz.</td></tr>
+          <tr><td colspan="6" class="px-4 py-6 text-center text-slate-500">Nincs adat a szűrőkhöz.</td></tr>
         <% } %>
         <% groups.forEach(function(g){ %>
           <tr>
@@ -115,8 +104,6 @@
             <td class="px-4 py-3 text-center text-red-500"><%= g.lost %></td>
             <td class="px-4 py-3 text-center"><%= pct(g.winRate) %></td>
             <td class="px-4 py-3 text-center text-slate-600"><%= g.avgOdds ? g.avgOdds.toFixed(2) : '–' %></td>
-            <td class="px-4 py-3 text-center font-semibold <%= uClass(g.profit) %>"><%= units(g.profit) %></td>
-            <td class="px-4 py-3 text-center <%= g.yield === null ? 'text-slate-500' : uClass(g.yield) %>"><%= g.yield === null ? '–' : Math.round(g.yield * 100) + '%' %></td>
           </tr>
         <% }) %>
       </tbody>
@@ -139,7 +126,6 @@
         <div class="font-bold text-slate-900 mb-1"><%= match.homeTeam %> – <%= match.awayTeam %></div>
         <div class="divide-y divide-slate-100">
           <% match.tips.forEach(function(tip){
-               var pl = tipPL(tip);
                var rBadge = { WON:'bg-emerald-100 text-emerald-700', LOST:'bg-red-100 text-red-700', VOID:'bg-slate-100 text-slate-600' }[tip.result] || 'bg-slate-100 text-slate-600';
                var rLabel = (domain.TIP_RESULTS[tip.result] || { label: tip.result }).label; %>
             <div class="flex items-center justify-between gap-3 py-2">
@@ -147,14 +133,7 @@
                 <span class="text-[11px] font-semibold uppercase text-slate-500"><%= domain.betTypeLabel(tip.betType) %></span>
                 <div class="text-sm font-medium text-slate-800"><%= tip.selection %><% if (tip.line !== null && tip.line !== undefined) { %> (<%= tip.line %>)<% } %><% if (tip.odds) { %> <span class="text-slate-400">@ <%= tip.odds.toFixed(2) %></span><% } %></div>
               </div>
-              <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[11px] px-2 py-0.5 rounded-full <%= rBadge %>"><%= rLabel %></span>
-                <% if (tip.result === 'WON' || tip.result === 'LOST') { %>
-                  <span class="text-sm font-semibold w-14 text-right <%= uClass(pl) %>"><%= units(pl) %></span>
-                <% } else { %>
-                  <span class="text-sm text-slate-400 w-14 text-right">–</span>
-                <% } %>
-              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-full shrink-0 <%= rBadge %>"><%= rLabel %></span>
             </div>
           <% }) %>
         </div>
