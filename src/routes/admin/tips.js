@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
-const { BET_TYPES, BET_TYPE_ORDER, TIER_ORDER, TIERS, TIP_RESULTS, TIP_RESULT_ORDER } = require('../../lib/domain');
+const { BET_TYPES, BET_TYPE_ORDER, TIP_RESULTS, TIP_RESULT_ORDER } = require('../../lib/domain');
 
 // Szerkesztő űrlap
 router.get('/:id/szerkeszt', async (req, res, next) => {
@@ -17,8 +17,6 @@ router.get('/:id/szerkeszt', async (req, res, next) => {
       tip,
       betTypes: BET_TYPES,
       betTypeOrder: BET_TYPE_ORDER,
-      tierOrder: TIER_ORDER,
-      tiers: TIERS,
       results: TIP_RESULTS,
       resultOrder: TIP_RESULT_ORDER,
     });
@@ -34,7 +32,7 @@ router.post('/:id', async (req, res, next) => {
     if (!tip) {
       return res.status(404).render('error', { title: 'Nincs tipp', message: 'A tipp nem található.' });
     }
-    const { betType, selection, line, odds, confidence, stake, requiredTier, analysis, result } = req.body;
+    const { betType, selection, line, odds, confidence, stake, analysis, result } = req.body;
     await prisma.tip.update({
       where: { id: tip.id },
       data: {
@@ -44,7 +42,6 @@ router.post('/:id', async (req, res, next) => {
         odds: odds ? parseFloat(odds) : null,
         confidence: confidence ? parseInt(confidence, 10) : null,
         stake: stake ? parseInt(stake, 10) : null,
-        requiredTier: TIERS[requiredTier] ? requiredTier : tip.requiredTier,
         analysis: analysis ? analysis.trim() : null,
         result: TIP_RESULTS[result] ? result : tip.result,
       },

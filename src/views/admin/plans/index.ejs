@@ -1,47 +1,36 @@
-<h1 class="text-2xl font-bold text-slate-900 mb-2">Csomagok &amp; árak</h1>
+<h1 class="text-2xl font-bold text-slate-900 mb-2">Árak</h1>
 <p class="text-slate-600 mb-6 text-sm">
-  Állítsd be a csomagok bruttó árát (Ft). Megadhatsz előre létrehozott Stripe Price azonosítót is – ha üres,
-  a fizetéskor automatikusan az itteni ár alapján jön létre az ár.
+  Egy csomag van, futamidőnként külön árral. Állítsd be a bruttó árat (Ft). Megadhatsz
+  előre létrehozott Stripe Price azonosítót is – ha üres, a fizetéskor az itteni ár alapján jön létre.
 </p>
 
-<div class="space-y-8">
-  <% tierOrder.forEach(function(tierCode){
-       var tier = tiers[tierCode]; %>
-    <div>
-      <h2 class="text-lg font-bold text-slate-800 mb-3"><%= tier.label %> szint</h2>
-      <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
-        <div class="hidden sm:flex items-center gap-3 px-4 py-2 text-xs font-medium text-slate-500 uppercase">
-          <div class="w-24">Időtartam</div>
-          <div class="w-32">Ár (Ft)</div>
-          <div class="flex-1">Stripe Price ID</div>
-          <div class="w-16 text-center">Aktív</div>
-          <div class="w-20"></div>
-        </div>
-        <% durationOrder.forEach(function(durCode){
-             var plan = matrix[tierCode] && matrix[tierCode][durCode];
-             var dur = durations[durCode];
-             if (!plan) return; %>
-          <form action="/admin/csomagok/<%= plan.id %>" method="post"
-            class="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-            <div class="w-24 font-medium text-slate-700 text-sm"><%= dur.label %></div>
-            <div class="w-32">
-              <input type="number" name="priceHuf" min="0" value="<%= plan.priceHuf %>"
-                class="w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
-            </div>
-            <div class="flex-1 min-w-[180px]">
-              <input type="text" name="stripePriceId" value="<%= plan.stripePriceId || '' %>" placeholder="price_..."
-                class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
-            </div>
-            <div class="w-16 text-center">
-              <input type="checkbox" name="active" <%= plan.active ? 'checked' : '' %> class="h-4 w-4 align-middle" />
-            </div>
-            <div class="w-20 text-right">
-              <button type="submit" class="px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-semibold hover:bg-brand-dark">Mentés</button>
-            </div>
-          </form>
-        <% }) %>
+<div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 max-w-2xl">
+  <div class="hidden sm:flex items-center gap-3 px-4 py-2 text-xs font-medium text-slate-500 uppercase">
+    <div class="w-24">Futamidő</div>
+    <div class="w-32">Ár (Ft)</div>
+    <div class="flex-1">Stripe Price ID</div>
+    <div class="w-16 text-center">Aktív</div>
+    <div class="w-20"></div>
+  </div>
+  <% rows.forEach(function(r){ %>
+    <form action="/admin/csomagok/<%= r.plan.id %>" method="post"
+      class="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <div class="w-24 font-medium text-slate-700 text-sm"><%= r.duration.label %></div>
+      <div class="w-32">
+        <input type="number" name="priceHuf" min="0" value="<%= r.plan.priceHuf %>"
+          class="w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
       </div>
-    </div>
+      <div class="flex-1 min-w-[180px]">
+        <input type="text" name="stripePriceId" value="<%= r.plan.stripePriceId || '' %>" placeholder="price_..."
+          class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
+      </div>
+      <div class="w-16 text-center">
+        <input type="checkbox" name="active" <%= r.plan.active ? 'checked' : '' %> class="h-4 w-4 align-middle" />
+      </div>
+      <div class="w-20 text-right">
+        <button type="submit" class="px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-semibold hover:bg-brand-dark">Mentés</button>
+      </div>
+    </form>
   <% }) %>
 </div>

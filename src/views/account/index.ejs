@@ -11,10 +11,10 @@
     <div class="text-sm text-slate-500 mb-1">Előfizetés állapota</div>
     <% if (access && access.active) { %>
       <div class="flex items-center gap-2">
-        <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border border-emerald-200"><%= access.tierLabel %> aktív</span>
+        <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold border border-emerald-200">Előfizetés aktív</span>
       </div>
-      <p class="text-sm text-slate-600 mt-2">A(z) <strong><%= access.tierLabel %></strong> szint eddig érvényes: <strong><%= formatDateTime(access.expiresAt) %></strong>.</p>
-      <a href="/elofizetes" class="inline-block mt-3 text-sm font-semibold text-brand hover:underline">Hosszabbítás / magasabb szint →</a>
+      <p class="text-sm text-slate-600 mt-2">Az előfizetésed eddig érvényes: <strong><%= formatDateTime(access.expiresAt) %></strong>.</p>
+      <a href="/elofizetes" class="inline-block mt-3 text-sm font-semibold text-brand hover:underline">Hosszabbítás →</a>
     <% } else { %>
       <p class="text-slate-600 text-sm">Jelenleg nincs aktív előfizetésed.</p>
       <a href="/elofizetes" class="inline-block mt-3 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-dark">Előfizetek</a>
@@ -112,7 +112,6 @@
         <thead class="bg-slate-50 text-slate-500 text-left">
           <tr>
             <th class="px-4 py-3 font-medium">Dátum</th>
-            <th class="px-4 py-3 font-medium">Szint</th>
             <th class="px-4 py-3 font-medium">Időtartam</th>
             <th class="px-4 py-3 font-medium">Összeg</th>
             <th class="px-4 py-3 font-medium">Állapot</th>
@@ -127,7 +126,6 @@
                                : 'bg-slate-100 text-slate-600'; %>
             <tr>
               <td class="px-4 py-3 text-slate-600"><%= formatDate(g.createdAt) %></td>
-              <td class="px-4 py-3 font-medium text-slate-800"><%= domain.tierLabel(g.tier) %></td>
               <td class="px-4 py-3 text-slate-600"><%= g.durationDays %> nap</td>
               <td class="px-4 py-3 text-slate-600"><%= g.amountHuf != null ? formatHuf(g.amountHuf) : '–' %></td>
               <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold <%= statusBadge %>"><%= g.status %></span></td>

@@ -95,29 +95,24 @@ model Tip {
   odds         Float? // ajánlott odds
   confidence   Int? // 1..5 bizalmi szint
   stake        Int? // 1..10 javasolt tét egység
-  requiredTier String   @default("BASIC") // BASIC | PREMIUM | VIP – melyik szinttől látható
   analysis     String? // indoklás / elemzés
   result       String   @default("PENDING") // PENDING | WON | LOST | VOID
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([matchId])
-  @@index([requiredTier])
 }
 
-// --- Előfizetési csomagok (szint × időtartam mátrix) ----------------------
+// --- Előfizetési csomag (egy csomag, változtatható futamidővel) -----------
 
 model Plan {
   id            String        @id @default(cuid())
-  tier          String // BASIC | PREMIUM | VIP
-  durationCode  String // DAY_1 | DAY_3 | WEEK_1 | MONTH_1 | MONTH_3 | MONTH_6 | YEAR_1
+  durationCode  String        @unique // DAY_1 | WEEK_1 | MONTH_1 | MONTH_3 | MONTH_6 | YEAR_1
   durationDays  Int
   priceHuf      Int
   stripePriceId String? // opcionális, ha előre létrehozott Stripe Price-t használsz
   active        Boolean       @default(true)
   grants        AccessGrant[]
-
-  @@unique([tier, durationCode])
 }
 
 // --- Megvásárolt hozzáférés (időkorlátos) ---------------------------------
@@ -128,7 +123,6 @@ model AccessGrant {
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   planId                String?
   plan                  Plan?    @relation(fields: [planId], references: [id])
-  tier                  String
   durationDays          Int
   amountHuf             Int?
   startsAt              DateTime @default(now())

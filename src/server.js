@@ -91,7 +91,7 @@ app.use((req, res, next) => {
   res.locals.currentPath = req.path;
   res.locals.title = null;
   res.locals.currentUser = null;
-  res.locals.access = { active: false, effectiveRank: 0, tier: null };
+  res.locals.access = { active: false, expiresAt: null };
   // Alapértelmezett CSRF token, hogy a hibaoldal akkor is renderelhető legyen,
   // ha a hiba a CSRF-middleware lefutása előtt keletkezik (a valódi CSRF
   // middleware később felülírja a tényleges tokennel).

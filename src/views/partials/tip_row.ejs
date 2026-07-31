@@ -1,14 +1,7 @@
 <%
   var reveal = (typeof reveal !== 'undefined') && reveal;
-  var reqRank = domain.tierRank(tip.requiredTier);
-  var canView = reveal || (access && access.effectiveRank >= reqRank);
-  var tierInfo = domain.TIERS[tip.requiredTier] || { label: tip.requiredTier, color: 'slate' };
-  var resultInfo = domain.TIP_RESULTS[tip.result] || { label: tip.result, color: 'slate' };
-  var tierBadge = {
-    BASIC: 'bg-slate-100 text-slate-700 border-slate-200',
-    PREMIUM: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    VIP: 'bg-amber-100 text-amber-800 border-amber-200'
-  }[tip.requiredTier] || 'bg-slate-100 text-slate-700 border-slate-200';
+  var canView = reveal || (access && access.active);
+  var resultInfo = domain.TIP_RESULTS[tip.result] || { label: tip.result };
   var resultBadge = {
     WON: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     LOST: 'bg-red-100 text-red-700 border-red-200',
@@ -20,7 +13,6 @@
   <div class="min-w-0">
     <div class="flex items-center gap-2 flex-wrap">
       <span class="text-xs font-semibold uppercase tracking-wide text-slate-500"><%= domain.betTypeLabel(tip.betType) %></span>
-      <span class="text-[11px] px-2 py-0.5 rounded-full border <%= tierBadge %>"><%= tierInfo.label %></span>
       <% if (tip.result && tip.result !== 'PENDING') { %>
         <span class="text-[11px] px-2 py-0.5 rounded-full border <%= resultBadge %>"><%= resultInfo.label %></span>
       <% } %>
@@ -36,7 +28,7 @@
     <% } else { %>
       <div class="mt-1 flex items-center gap-2 text-slate-400">
         <span>🔒</span>
-        <span class="italic">Rejtett tipp – <%= tierInfo.label %> előfizetés szükséges</span>
+        <span class="italic">Rejtett tipp – előfizetés szükséges</span>
       </div>
     <% } %>
   </div>

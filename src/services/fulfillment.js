@@ -3,7 +3,7 @@
 // kifizetett állapotú, nem dolgozza fel újra.
 const prisma = require('../db');
 const szamlazz = require('../lib/szamlazz');
-const { TIERS, DURATIONS } = require('../lib/domain');
+const { DURATIONS } = require('../lib/domain');
 
 // A Stripe Checkout Session-ből aktiválja a kapcsolódó AccessGrant-et.
 async function fulfillFromSession(session) {
@@ -60,7 +60,6 @@ async function issueInvoiceForGrant(grant, session) {
 
   const details = session.customer_details || {};
   const addr = details.address || {};
-  const tierLabel = TIERS[grant.tier] ? TIERS[grant.tier].label : grant.tier;
   const durLabel = grant.plan && DURATIONS[grant.plan.durationCode]
     ? DURATIONS[grant.plan.durationCode].label
     : `${grant.durationDays} nap`;
@@ -74,7 +73,7 @@ async function issueInvoiceForGrant(grant, session) {
   };
 
   const item = {
-    name: `Sportfog ${tierLabel} előfizetés (${durLabel})`,
+    name: `Sportfog előfizetés (${durLabel})`,
     quantity: 1,
     grossUnitPrice: grant.amountHuf || (grant.plan ? grant.plan.priceHuf : 0),
   };
@@ -84,7 +83,7 @@ async function issueInvoiceForGrant(grant, session) {
       buyer,
       item,
       orderNumber: grant.id,
-      comment: `Sportfog hozzáférés – ${tierLabel} (${durLabel})`,
+      comment: `Sportfog előfizetés – ${durLabel}`,
     });
     if (result.success) {
       await prisma.accessGrant.update({

@@ -10,12 +10,12 @@ Egyelőre focival: a tippek típus szerint (Hazai–Döntetlen–Vendég, gólok
 
 ## Főbb funkciók
 
-- **Időtávok**: a felhasználó 1 nap / 3 nap / 1 hét / 1 hónap / 3 hónap / 6 hónap / 1 év
-  időtávra fizethet elő, és a tippeket időablak szerint is szűrheti.
-- **Előfizetési szintek (tier)**: Alap / Prémium / VIP. A magasabb szint a kisebb
-  szintek tippjeit is feloldja. Minden tipphez beállítható, melyik szinttől látható.
-- **Admin felület**: meccsek és tippek kezelése, eredmények rögzítése, csomagárak
-  beállítása, felhasználók kezelése (admin jog, kézi hozzáférés adása).
+- **Egy csomag, változtatható futamidővel**: a felhasználó 1 nap / 1 hét / 1 hónap /
+  3 hónap / 6 hónap / 1 év futamidőre fizethet elő. Aktív előfizetéssel minden tipp
+  elérhető; a futamidők árai az adminban állíthatók.
+- **Böngészési szűrők**: a tippek időablak (1 nap … 1 év) és fogadási típus szerint szűrhetők.
+- **Admin felület**: meccsek és tippek kezelése, eredmények rögzítése, árak
+  beállítása futamidőnként, felhasználók kezelése (admin jog, kézi hozzáférés adása).
 - **Track record**: a lejátszott tippek eredményei nyilvánosan láthatók (találati arány).
 
 ## Technológia
@@ -133,8 +133,8 @@ szerverhez nyúlni egy kulcs cseréjéhez. A bootstrap-jellegű és biztonsági 
 
 ## Értesítések (e-mail, Telegram, Messenger, Web Push)
 
-A felhasználók **az új tippekről** kapnak értesítést a választott csatornákon, a
-**jogosultságuknak (szintjüknek) megfelelően**. A csatorna a regisztrációkor
+A felhasználók **az új tippekről** kapnak értesítést a választott csatornákon
+(az **aktív előfizetők**). A csatorna a regisztrációkor
 megadható, és a **Fiókom → Értesítések** oldalon bármikor módosítható. Kiváltó:
 **új tipp publikálásakor** (az admin tipp-űrlapján bepipálható) és **admin kézi
 körüzenettel** (Admin → Üzenetek). Minden csatorna **kikapcsolt marad**, amíg a
@@ -180,7 +180,7 @@ src/
   config.js          # környezeti változók
   db.js              # Prisma kliens
   lib/
-    domain.js        # szintek, időtartamok, fogadási típusok (magyar címkék)
+    domain.js        # futamidők, fogadási típusok (magyar címkék)
     stripe.js        # Stripe Checkout + ügyfél
     szamlazz.js      # Számlázz.hu (Számla Agent) XML kliens
     access.js        # aktív hozzáférés kiszámítása

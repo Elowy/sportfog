@@ -4,7 +4,7 @@
 const Stripe = require('stripe');
 const config = require('../config');
 const settings = require('../services/settings');
-const { TIERS, DURATIONS } = require('./domain');
+const { DURATIONS } = require('./domain');
 
 let cached = null;
 let cachedKey = null;
@@ -55,7 +55,6 @@ async function createCheckoutSession({ user, plan, grant, customerId }) {
   if (!stripe) throw new Error('A Stripe nincs beállítva.');
 
   const cur = currency();
-  const tierLabel = TIERS[plan.tier] ? TIERS[plan.tier].label : plan.tier;
   const durLabel = DURATIONS[plan.durationCode] ? DURATIONS[plan.durationCode].label : plan.durationCode;
 
   const lineItem = plan.stripePriceId
@@ -65,8 +64,8 @@ async function createCheckoutSession({ user, plan, grant, customerId }) {
           currency: cur,
           unit_amount: toStripeAmount(plan.priceHuf, cur),
           product_data: {
-            name: `Sportfog – ${tierLabel} előfizetés`,
-            description: `Hozzáférés a ${tierLabel} szintű tippekhez (${durLabel})`,
+            name: 'Sportfog előfizetés',
+            description: `Hozzáférés a tippekhez (${durLabel})`,
           },
         },
         quantity: 1,
@@ -81,7 +80,7 @@ async function createCheckoutSession({ user, plan, grant, customerId }) {
     billing_address_collection: 'required',
     customer_update: customerId ? { address: 'auto', name: 'auto' } : undefined,
     client_reference_id: grant.id,
-    metadata: { grantId: grant.id, userId: user.id, planId: plan.id, tier: plan.tier, durationDays: String(plan.durationDays) },
+    metadata: { grantId: grant.id, userId: user.id, planId: plan.id, durationDays: String(plan.durationDays) },
     success_url: `${config.baseUrl}/elofizetes/siker?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${config.baseUrl}/elofizetes/megse`,
   });

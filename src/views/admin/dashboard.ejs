@@ -41,7 +41,7 @@
         <tr>
           <th class="px-4 py-3 font-medium">Dátum</th>
           <th class="px-4 py-3 font-medium">Felhasználó</th>
-          <th class="px-4 py-3 font-medium">Szint</th>
+          <th class="px-4 py-3 font-medium">Futamidő</th>
           <th class="px-4 py-3 font-medium">Összeg</th>
           <th class="px-4 py-3 font-medium">Számla</th>
         </tr>
@@ -51,7 +51,7 @@
           <tr>
             <td class="px-4 py-3 text-slate-600"><%= formatDate(g.createdAt) %></td>
             <td class="px-4 py-3 text-slate-800"><%= g.user.email %></td>
-            <td class="px-4 py-3"><%= domain.tierLabel(g.tier) %></td>
+            <td class="px-4 py-3 text-slate-600"><%= g.durationDays %> nap</td>
             <td class="px-4 py-3 text-slate-600"><%= g.amountHuf != null ? formatHuf(g.amountHuf) : '–' %></td>
             <td class="px-4 py-3 text-slate-600"><%= g.invoiceNumber || (g.invoiceError ? 'hiba' : '–') %></td>
           </tr>

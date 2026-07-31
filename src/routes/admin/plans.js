@@ -1,28 +1,23 @@
-// Előfizetési csomagok árazása és Stripe Price azonosítók kezelése.
+// Előfizetési árak futamidőnként (egy csomag).
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
-const { TIER_ORDER, DURATION_ORDER, TIERS, DURATIONS } = require('../../lib/domain');
+const { DURATION_ORDER, DURATIONS } = require('../../lib/domain');
 
 router.get('/', async (req, res, next) => {
   try {
     const plans = await prisma.plan.findMany();
-    const byId = {};
-    const matrix = {};
-    for (const tier of TIER_ORDER) matrix[tier] = {};
-    for (const p of plans) {
-      byId[p.id] = p;
-      if (!matrix[p.tier]) matrix[p.tier] = {};
-      matrix[p.tier][p.durationCode] = p;
-    }
+    const byDuration = {};
+    for (const p of plans) byDuration[p.durationCode] = p;
+
+    const rows = DURATION_ORDER
+      .filter((code) => byDuration[code])
+      .map((code) => ({ plan: byDuration[code], duration: DURATIONS[code] }));
+
     res.render('admin/plans/index', {
-      title: 'Admin – Csomagok',
+      title: 'Admin – Árak',
       layout: 'admin/layout',
-      matrix,
-      tierOrder: TIER_ORDER,
-      durationOrder: DURATION_ORDER,
-      tiers: TIERS,
-      durations: DURATIONS,
+      rows,
     });
   } catch (err) {
     next(err);
@@ -44,7 +39,7 @@ router.post('/:id', async (req, res, next) => {
         active: req.body.active === 'on' || req.body.active === 'true',
       },
     });
-    req.flash('success', 'Csomag frissítve.');
+    req.flash('success', 'Ár frissítve.');
     res.redirect('/admin/csomagok');
   } catch (err) {
     next(err);

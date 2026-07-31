@@ -6,7 +6,7 @@ const { getActiveAccess } = require('../lib/access');
 // és elérhetővé teszi a nézetek számára (res.locals).
 async function loadUser(req, res, next) {
   res.locals.currentUser = null;
-  res.locals.access = { active: false, effectiveRank: 0, tier: null };
+  res.locals.access = { active: false, expiresAt: null };
   try {
     if (req.session && req.session.userId) {
       const user = await prisma.user.findUnique({ where: { id: req.session.userId } });

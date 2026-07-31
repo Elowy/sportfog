@@ -5,29 +5,21 @@ const prisma = require('../db');
 const stripeLib = require('../lib/stripe');
 const { requireAuth } = require('../middleware/auth');
 const { fulfillFromSession } = require('../services/fulfillment');
-const { TIER_ORDER, DURATION_ORDER, TIERS, DURATIONS } = require('../lib/domain');
+const { DURATION_ORDER, DURATIONS } = require('../lib/domain');
 
-// Csomagok listája (szint × időtartam mátrix).
+// Egy csomag, választható futamidővel.
 router.get('/', async (req, res, next) => {
   try {
     const plans = await prisma.plan.findMany({ where: { active: true } });
+    const byDuration = {};
+    for (const p of plans) byDuration[p.durationCode] = p;
 
-    // Mátrix: tier -> durationCode -> plan
-    const matrix = {};
-    for (const tier of TIER_ORDER) matrix[tier] = {};
-    for (const p of plans) {
-      if (!matrix[p.tier]) matrix[p.tier] = {};
-      matrix[p.tier][p.durationCode] = p;
-    }
+    // A futamidők a beállított sorrendben, csak az aktív/létező árakkal.
+    const options = DURATION_ORDER
+      .filter((code) => byDuration[code])
+      .map((code) => ({ plan: byDuration[code], duration: DURATIONS[code] }));
 
-    res.render('subscribe/index', {
-      title: 'Előfizetés',
-      matrix,
-      tierOrder: TIER_ORDER,
-      durationOrder: DURATION_ORDER,
-      tiers: TIERS,
-      durations: DURATIONS,
-    });
+    res.render('subscribe/index', { title: 'Előfizetés', options });
   } catch (err) {
     next(err);
   }
@@ -52,7 +44,6 @@ router.post('/checkout', requireAuth, async (req, res, next) => {
       data: {
         userId: req.user.id,
         planId: plan.id,
-        tier: plan.tier,
         durationDays: plan.durationDays,
         amountHuf: plan.priceHuf,
         status: 'PENDING',

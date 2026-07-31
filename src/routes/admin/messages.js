@@ -33,7 +33,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const audience = ['all', 'active', 'BASIC', 'PREMIUM', 'VIP'].includes(req.body.audience) ? req.body.audience : 'all';
+    const audience = ['all', 'active'].includes(req.body.audience) ? req.body.audience : 'all';
     const title = (req.body.title || '').trim();
     const text = (req.body.text || '').trim();
     const channels = ['email', 'telegram', 'messenger', 'webpush'].filter((c) => req.body['ch_' + c] === 'on');

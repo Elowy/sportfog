@@ -8,7 +8,7 @@ const telegram = require('../lib/telegram');
 const messenger = require('../lib/messenger');
 const webpush = require('../lib/webpush');
 const { getActiveAccess } = require('../lib/access');
-const { tierRank, betTypeLabel, formatDateTime } = require('../lib/domain');
+const { betTypeLabel, formatDateTime } = require('../lib/domain');
 
 const STOP_WORDS = ['stop', 'leiratkozas', 'leiratkozás', '/stop', 'leallitas', 'leállítás'];
 
@@ -165,7 +165,6 @@ async function notifyNewTip(tipId) {
     where: { OR: [{ notifyEmail: true }, { notifyTelegram: true }, { notifyMessenger: true }, { notifyWebPush: true }] },
   });
 
-  const required = tierRank(tip.requiredTier);
   const m = tip.match;
   const lineTxt = tip.line !== null && tip.line !== undefined ? ` (${tip.line})` : '';
   const oddsTxt = tip.odds ? ` @ ${tip.odds.toFixed(2)}` : '';
@@ -175,10 +174,11 @@ async function notifyNewTip(tipId) {
     url: `${config.baseUrl}/tippek`,
   };
 
+  // Csak az aktív előfizetőknek küldünk (a tippek részletei nekik szólnak).
   let users = 0, sent = 0;
   for (const user of recipients) {
     const access = await getActiveAccess(prisma, user.id);
-    if (!access.active || access.effectiveRank < required) continue;
+    if (!access.active) continue;
     const s = await dispatchToUser(user, payload);
     if (s > 0) { users++; sent += s; }
   }
@@ -186,7 +186,7 @@ async function notifyNewTip(tipId) {
 }
 
 // --- Admin kézi körüzenet ------------------------------------------------
-// audience: 'all' | 'active' | 'BASIC'|'PREMIUM'|'VIP'. channels: csatorna-szűrő.
+// audience: 'all' | 'active'. channels: csatorna-szűrő.
 async function broadcast({ audience, channels, title, text }) {
   if (!text || !text.trim()) return { users: 0, sent: 0, error: 'Üres üzenet.' };
   const recipients = await prisma.user.findMany({
@@ -196,10 +196,9 @@ async function broadcast({ audience, channels, title, text }) {
   const payload = { title: title && title.trim() ? title.trim() : 'Sportfog értesítés', text: text.trim(), url: config.baseUrl };
   let users = 0, sent = 0;
   for (const user of recipients) {
-    if (audience !== 'all') {
+    if (audience === 'active') {
       const access = await getActiveAccess(prisma, user.id);
-      if (audience === 'active' && !access.active) continue;
-      if (['BASIC', 'PREMIUM', 'VIP'].includes(audience) && access.effectiveRank < tierRank(audience)) continue;
+      if (!access.active) continue;
     }
     const s = await dispatchToUser(user, payload, channels && channels.length ? channels : null);
     if (s > 0) { users++; sent += s; }

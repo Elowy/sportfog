@@ -1,33 +1,9 @@
 // Központi domain-konstansok: előfizetési szintek, időtartamok, fogadási típusok.
 // Magyar nyelvű címkékkel, hogy a nézetek és az admin egységesen használhassák.
 
-// --- Előfizetési szintek (tier) ------------------------------------------
-// A magasabb rangú szint látja az alacsonyabb szintű tippeket is.
-const TIERS = {
-  BASIC: { code: 'BASIC', label: 'Alap', rank: 1, color: 'slate' },
-  PREMIUM: { code: 'PREMIUM', label: 'Prémium', rank: 2, color: 'indigo' },
-  VIP: { code: 'VIP', label: 'VIP', rank: 3, color: 'amber' },
-};
-
-const TIER_ORDER = ['BASIC', 'PREMIUM', 'VIP'];
-
-function tierRank(code) {
-  return TIERS[code] ? TIERS[code].rank : 0;
-}
-
-function tierLabel(code) {
-  return TIERS[code] ? TIERS[code].label : code;
-}
-
-// Igaz, ha az adott felhasználói rang elérheti a tipp által megkövetelt szintet.
-function canAccessTier(userRank, requiredTierCode) {
-  return userRank >= tierRank(requiredTierCode);
-}
-
-// --- Időtartamok ----------------------------------------------------------
+// --- Előfizetési futamidők (egy csomag, változtatható időtartammal) --------
 const DURATIONS = {
   DAY_1: { code: 'DAY_1', label: '1 nap', days: 1 },
-  DAY_3: { code: 'DAY_3', label: '3 nap', days: 3 },
   WEEK_1: { code: 'WEEK_1', label: '1 hét', days: 7 },
   MONTH_1: { code: 'MONTH_1', label: '1 hónap', days: 30 },
   MONTH_3: { code: 'MONTH_3', label: '3 hónap', days: 90 },
@@ -35,7 +11,7 @@ const DURATIONS = {
   YEAR_1: { code: 'YEAR_1', label: '1 év', days: 365 },
 };
 
-const DURATION_ORDER = ['DAY_1', 'DAY_3', 'WEEK_1', 'MONTH_1', 'MONTH_3', 'MONTH_6', 'YEAR_1'];
+const DURATION_ORDER = ['DAY_1', 'WEEK_1', 'MONTH_1', 'MONTH_3', 'MONTH_6', 'YEAR_1'];
 
 // --- Böngészési időablakok (a tippek listájához) --------------------------
 // Ugyanazok az intervallumok, mint az előfizetésnél, de itt szűrőként
@@ -183,11 +159,6 @@ function formatDate(date) {
 }
 
 module.exports = {
-  TIERS,
-  TIER_ORDER,
-  tierRank,
-  tierLabel,
-  canAccessTier,
   DURATIONS,
   DURATION_ORDER,
   TIME_WINDOWS,

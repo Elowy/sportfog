@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
 const { getActiveAccess } = require('../../lib/access');
-const { TIER_ORDER, DURATION_ORDER, TIERS, DURATIONS } = require('../../lib/domain');
+const { DURATION_ORDER, DURATIONS } = require('../../lib/domain');
 
 router.get('/', async (req, res, next) => {
   try {
@@ -15,9 +15,7 @@ router.get('/', async (req, res, next) => {
       title: 'Admin – Felhasználók',
       layout: 'admin/layout',
       rows: withAccess,
-      tierOrder: TIER_ORDER,
       durationOrder: DURATION_ORDER,
-      tiers: TIERS,
       durations: DURATIONS,
     });
   } catch (err) {
@@ -52,14 +50,12 @@ router.post('/:id/hozzaferes', async (req, res, next) => {
     if (!user) {
       return res.status(404).render('error', { title: 'Nincs felhasználó', message: 'A felhasználó nem található.' });
     }
-    const tier = TIERS[req.body.tier] ? req.body.tier : 'BASIC';
     const durationCode = DURATIONS[req.body.durationCode] ? req.body.durationCode : 'WEEK_1';
     const days = DURATIONS[durationCode].days;
 
     await prisma.accessGrant.create({
       data: {
         userId: user.id,
-        tier,
         durationDays: days,
         amountHuf: 0,
         status: 'PAID',
@@ -68,7 +64,7 @@ router.post('/:id/hozzaferes', async (req, res, next) => {
         expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000),
       },
     });
-    req.flash('success', `Hozzáférés megadva: ${TIERS[tier].label} (${DURATIONS[durationCode].label}).`);
+    req.flash('success', `Hozzáférés megadva: ${DURATIONS[durationCode].label}.`);
     res.redirect('/admin/felhasznalok');
   } catch (err) {
     next(err);

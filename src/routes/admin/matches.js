@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
 const notifications = require('../../services/notifications');
-const { MATCH_STATUSES, BET_TYPES, BET_TYPE_ORDER, TIER_ORDER, TIERS } = require('../../lib/domain');
+const { MATCH_STATUSES, BET_TYPES, BET_TYPE_ORDER } = require('../../lib/domain');
 
 function parseKickoff(value) {
   const d = new Date(value);
@@ -91,8 +91,6 @@ router.get('/:id', async (req, res, next) => {
       match,
       betTypes: BET_TYPES,
       betTypeOrder: BET_TYPE_ORDER,
-      tierOrder: TIER_ORDER,
-      tiers: TIERS,
       notifyAvailable: notifications.anyChannelEnabled(),
     });
   } catch (err) {
@@ -165,7 +163,7 @@ router.post('/:id/tippek', async (req, res, next) => {
       return res.status(404).render('error', { title: 'Nincs meccs', message: 'A meccs nem található.' });
     }
 
-    const { betType, selection, line, odds, confidence, stake, requiredTier, analysis } = req.body;
+    const { betType, selection, line, odds, confidence, stake, analysis } = req.body;
     if (!BET_TYPES[betType] || !selection || !selection.trim()) {
       req.flash('error', 'A fogadási típus és a tipp (selection) megadása kötelező.');
       return res.redirect(`/admin/meccsek/${match.id}`);
@@ -180,7 +178,6 @@ router.post('/:id/tippek', async (req, res, next) => {
         odds: odds ? parseFloat(odds) : null,
         confidence: confidence ? parseInt(confidence, 10) : null,
         stake: stake ? parseInt(stake, 10) : null,
-        requiredTier: TIERS[requiredTier] ? requiredTier : 'BASIC',
         analysis: analysis ? analysis.trim() : null,
       },
     });
